@@ -184,7 +184,7 @@ app.post('/api/propiedades', async (req, res) => {
         } = req.body;
 
         // Validaciones
-        if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion || !detalles) {
+        if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
             return res.status(400).json({ error: 'Faltan campos requeridos' });
         }
 
@@ -228,7 +228,7 @@ app.put('/api/propiedades/:id', async (req, res) => {
         console.log('✏️  Actualizando propiedad ID:', req.params.id);
 
         // Validaciones
-        if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion || !detalles) {
+        if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
             return res.status(400).json({ error: 'Faltan campos requeridos' });
         }
 
