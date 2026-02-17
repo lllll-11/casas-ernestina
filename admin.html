@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Casitas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #ff385c;
+            --text: #222222;
+            --gray: #717171;
+            --bg: #ffffff;
+            --light-bg: #f9f9f9;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--light-bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-bottom: 2px solid #ebebeb;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        header .subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ff1a42;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-edit {
+            background: #1976d2;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-edit:hover {
+            background: #1565c0;
+        }
+
+        /* Form */
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-section h2 {
+            margin-bottom: 20px;
+            color: var(--text);
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .form-buttons button {
+            flex: 1;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .img-preview {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .img-preview-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .img-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .galeria-preview {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+        }
+
+        .galeria-preview-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f0f0f0;
+            border: 2px dashed #ddd;
+        }
+
+        .galeria-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Lista de Propiedades */
+        .properties-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .properties-section h2 {
+            margin-bottom: 20px;
+            color: var(--text);
+            font-size: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+            background: var(--light-bg);
+            border-radius: 8px;
+        }
+
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .property-card {
+            background: var(--light-bg);
+            border: 1px solid #ebebeb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .property-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary);
+        }
+
+        .property-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .property-content {
+            padding: 16px;
+        }
+
+        .property-content h3 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .property-location {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        .property-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .property-info {
+            display: flex;
+            gap: 12px;
+            margin: 12px 0;
+            padding: 8px 0;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .property-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .property-actions button {
+            flex: 1;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #ebebeb;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--text);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            header {
+                padding: 16px;
+            }
+
+            .form-section,
+            .properties-section {
+                padding: 20px;
+            }
+
+            .properties-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20% auto;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+            }
+
+            .header-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏠 Panel de Administración</h1>
+            <p class="subtitle">Gestiona tus propiedades de alquiler</p>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="abrirFormulario()">
+                    <i class="fas fa-plus"></i> Nueva Propiedad
+                </button>
+                <button class="btn btn-secondary" onclick="recargarPropiedades()">
+                    <i class="fas fa-sync-alt"></i> Recargar
+                </button>
+            </div>
+        </header>
+
+        <div id="alerts"></div>
+
+        <!-- Formulario -->
+        <div id="formModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="formTitle">Nueva Propiedad</h2>
+                    <button class="close-btn" onclick="cerrarFormulario()">&times;</button>
+                </div>
+                <form id="propiedadForm" onsubmit="guardarPropiedad(event)">
+                    <input type="hidden" id="propiedadId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Título *</label>
+                            <input type="text" id="titulo" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría *</label>
+                            <select id="categoria" required>
+                                <option value="Playa">Playa</option>
+                                <option value="Bosque">Bosque</option>
+                                <option value="Ciudad">Ciudad</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Precio (ej: 2,500) *</label>
+                            <input type="text" id="precio" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rating (0-5) *</label>
+                            <input type="number" id="rating" min="0" max="5" step="0.1" value="5.0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Imagen Principal *</label>
+                        <input type="file" id="img" accept="image/*" required>
+                        <div id="imgPreview" class="img-preview"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Galería de Imágenes</label>
+                        <input type="file" id="galeria" accept="image/*" multiple>
+                        <div id="galeriaPreview" class="galeria-preview"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ubicación *</label>
+                        <input type="text" id="ubicacion" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Embed Google Maps *</label>
+                        <textarea id="mapa_embed" placeholder='Pega aquí el código embed de Google Maps completo: &lt;iframe src="https://..."&gt;&lt;/iframe&gt;' required style="min-height: 120px;"></textarea>
+                        <small style="color: #999; font-size: 12px; display: block; margin-top: 8px;">1. Abre Google Maps → Busca la ubicación → Haz clic en el nombre del lugar → Comparte → Embed → Copia el código iframe completo</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción Corta *</label>
+                        <textarea id="descripcion" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Huéspedes *</label>
+                            <input type="number" id="huespedes" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Dormitorios *</label>
+                            <input type="number" id="dormitorios" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Baños *</label>
+                            <input type="number" id="banios" min="1" value="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amenidades (separadas por coma)</label>
+                        <textarea id="amenidades" placeholder="WiFi, Piscina, Aire acondicionado"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Detalles Completos *</label>
+                        <textarea id="detalles" required></textarea>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="cerrarFormulario()">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Propiedades -->
+        <div class="properties-section">
+            <h2>Propiedades (<span id="propiedadesCount">0</span>)</h2>
+            <div id="propiedadesList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Cargando propiedades...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        // Debug: verificar que se está accediendo al servidor
+        console.log('🎯 Admin Panel iniciado. API URL:', API_URL);
+        console.log('📍 Origen:', window.location.origin);
+
+        // Cargar propiedades al abrir la página
+        document.addEventListener('DOMContentLoaded', recargarPropiedades);
+
+        async function recargarPropiedades() {
+            try {
+                console.log('🔄 Recargando propiedades desde:', `${API_URL}/propiedades`);
+                const response = await fetch(`${API_URL}/propiedades`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const propiedades = await response.json();
+                console.log('✅ Propiedades cargadas:', propiedades.length);
+                mostrarPropiedades(propiedades);
+            } catch (error) {
+                console.error('❌ Error recargando:', error);
+                mostrarAlerta('Error al cargar propiedades: ' + error.message, 'error');
+            }
+        }
+
+        function mostrarPropiedades(propiedades) {
+            const container = document.getElementById('propiedadesList');
+            document.getElementById('propiedadesCount').textContent = propiedades.length;
+
+            if (propiedades.length === 0) {
+                container.innerHTML = '<div class="empty-message">Sin propiedades aún. ¡Crea la primera!</div>';
+                return;
+            }
+
+            container.innerHTML = `<div class="properties-grid">
+                ${propiedades.map(prop => `
+                    <div class="property-card">
+                        <img src="${prop.img}" alt="${prop.titulo}" class="property-img" onerror="this.src='https://via.placeholder.com/300x180?text=Sin+imagen'">
+                        <div class="property-content">
+                            <h3>${prop.titulo}</h3>
+                            <p class="property-location">📍 ${prop.ubicacion}</p>
+                            <p class="property-price">$${prop.precio}</p>
+                            <div class="property-info">
+                                <span>👥 ${prop.huespedes}</span>
+                                <span>🛏️ ${prop.dormitorios}</span>
+                                <span>🚿 ${prop.banios}</span>
+                            </div>
+                            <div class="property-actions">
+                                <button class="btn btn-edit" onclick="editarPropiedad(${prop.id})">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn btn-danger" onclick="eliminarPropiedad(${prop.id})">
+                                    🗑️ Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`;
+        }
+
+        function abrirFormulario() {
+            document.getElementById('propiedadId').value = '';
+            document.getElementById('formTitle').textContent = 'Nueva Propiedad';
+            document.getElementById('propiedadForm').reset();
+            document.getElementById('imgPreview').innerHTML = '';
+            document.getElementById('galeriaPreview').innerHTML = '';
+            document.getElementById('img').required = true;
+            document.getElementById('formModal').classList.add('active');
+        }
+
+        function cerrarFormulario() {
+            document.getElementById('formModal').classList.remove('active');
+        }
+
+        async function editarPropiedad(id) {
+            try {
+                const response = await fetch(`${API_URL}/propiedades/${id}`);
+                const prop = await response.json();
+
+                document.getElementById('propiedadId').value = prop.id;
+                document.getElementById('formTitle').textContent = 'Editar Propiedad';
+                document.getElementById('titulo').value = prop.titulo;
+                document.getElementById('categoria').value = prop.categoria;
+                document.getElementById('precio').value = prop.precio;
+                document.getElementById('rating').value = prop.rating;
+                document.getElementById('ubicacion').value = prop.ubicacion;
+                document.getElementById('mapa_embed').value = prop.mapa_embed || '';
+                document.getElementById('descripcion').value = prop.descripcion;
+                document.getElementById('huespedes').value = prop.huespedes;
+                document.getElementById('dormitorios').value = prop.dormitorios;
+                document.getElementById('banios').value = prop.banios;
+                document.getElementById('amenidades').value = prop.amenidades.join(', ');
+                document.getElementById('detalles').value = prop.detalles;
+
+                // Mostrar previsualizaciones de imágenes existentes
+                const imgPreview = document.getElementById('imgPreview');
+                imgPreview.innerHTML = `<div class="img-preview-item"><img src="${prop.img}" alt="Imagen actual"></div>`;
+
+                const galeriaPreview = document.getElementById('galeriaPreview');
+                galeriaPreview.innerHTML = '';
+                prop.galeria.forEach(url => {
+                    const div = document.createElement('div');
+                    div.className = 'galeria-preview-item';
+                    div.innerHTML = `<img src="${url}" alt="Imagen galería">`;
+                    galeriaPreview.appendChild(div);
+                });
+
+                // Limpiar los inputs de archivo
+                document.getElementById('img').value = '';
+                document.getElementById('img').required = false;
+                document.getElementById('galeria').value = '';
+
+                document.getElementById('formModal').classList.add('active');
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al cargar propiedad', 'error');
+            }
+        }
+
+        async function guardarPropiedad(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('propiedadId').value;
+            const imgFile = document.getElementById('img').files[0];
+            const galeriaFiles = document.getElementById('galeria').files;
+            
+            try {
+                let imgUrl = '';
+                let galeriaUrls = [];
+
+                // Subir imagen principal si existe
+                if (imgFile) {
+                    const formData = new FormData();
+                    formData.append('file', imgFile);
+                    const response = await fetch(`${API_URL}/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Error al subir imagen: ${response.statusText}`);
+                    const data = await response.json();
+                    if (!data.url) throw new Error('No se recibió URL de imagen');
+                    imgUrl = data.url;
+                } else if (id) {
+                    // Si es edición y no hay nueva imagen, obtener la antigua
+                    const propResponse = await fetch(`${API_URL}/propiedades/${id}`);
+                    if (!propResponse.ok) throw new Error('Error al obtener propiedad anterior');
+                    const prop = await propResponse.json();
+                    imgUrl = prop.img;
+                } else {
+                    throw new Error('La imagen principal es requerida');
+                }
+
+                // Subir imágenes de galería si existen
+                if (galeriaFiles.length > 0) {
+                    const formData = new FormData();
+                    for (let file of galeriaFiles) {
+                        formData.append('files', file);
+                    }
+                    const response = await fetch(`${API_URL}/upload-multiple`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Error al subir galerías: ${response.statusText}`);
+                    const data = await response.json();
+                    if (!data.urls) throw new Error('No se recibieron URLs de galería');
+                    galeriaUrls = data.urls;
+                } else if (id) {
+                    // Si es edición y no hay nuevas imágenes, obtener las antiguas
+                    const propResponse = await fetch(`${API_URL}/propiedades/${id}`);
+                    const prop = await propResponse.json();
+                    galeriaUrls = prop.galeria;
+                }
+
+                const mapa_embed = document.getElementById('mapa_embed').value;
+                const amenidades = document.getElementById('amenidades').value
+                    .split(',')
+                    .map(a => a.trim())
+                    .filter(a => a);
+
+                const data = {
+                    titulo: document.getElementById('titulo').value,
+                    categoria: document.getElementById('categoria').value,
+                    precio: document.getElementById('precio').value,
+                    rating: document.getElementById('rating').value,
+                    img: imgUrl,
+                    galeria: galeriaUrls,
+                    ubicacion: document.getElementById('ubicacion').value,
+                    mapa_embed,
+                    descripcion: document.getElementById('descripcion').value,
+                    huespedes: parseInt(document.getElementById('huespedes').value),
+                    dormitorios: parseInt(document.getElementById('dormitorios').value),
+                    banios: parseInt(document.getElementById('banios').value),
+                    amenidades,
+                    detalles: document.getElementById('detalles').value
+                };
+
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/propiedades/${id}` : `${API_URL}/propiedades`;
+
+                console.log(`📡 ${method === 'PUT' ? '✏️ Actualizando' : '📝 Creando'} propiedad:`, data.titulo);
+                console.log('📤 Enviando a:', url);
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                console.log(`🔙 Respuesta del servidor: ${response.status} ${response.statusText}`);
+                const responseData = await response.json();
+                console.log('📦 Datos recibidos:', responseData);
+
+                if (!response.ok) throw new Error(responseData.error || 'Error al guardar');
+
+                console.log('✅ ¡Guardado exitosamente!');
+                cerrarFormulario();
+                const mensaje = id ? '✓ Propiedad actualizada correctamente' : '✓ Propiedad creada correctamente';
+                mostrarAlerta(mensaje, 'success');
+                
+                console.log('🔄 Recargando lista de propiedades...');
+                await recargarPropiedades();
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al guardar propiedad: ' + error.message, 'error');
+            }
+        }
+
+        async function eliminarPropiedad(id) {
+            if (!confirm('¿Eliminar esta propiedad? Esta acción no se puede deshacer.')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/propiedades/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Error al eliminar');
+
+                mostrarAlerta('✓ Propiedad eliminada correctamente', 'success');
+                recargarPropiedades();
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al eliminar propiedad', 'error');
+            }
+        }
+
+        function mostrarAlerta(mensaje, tipo = 'info') {
+            const alertsContainer = document.getElementById('alerts');
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo}`;
+            alerta.textContent = mensaje;
+            alertsContainer.appendChild(alerta);
+
+            setTimeout(() => {
+                alerta.remove();
+            }, 4000);
+        }
+
+        // Listeners para previsualizaciones de imágenes
+        document.getElementById('img').addEventListener('change', function(e) {
+            const preview = document.getElementById('imgPreview');
+            preview.innerHTML = '';
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const div = document.createElement('div');
+                    div.className = 'img-preview-item';
+                    div.innerHTML = `<img src="${event.target.result}" alt="Previsualización">`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('galeria').addEventListener('change', function(e) {
+            const preview = document.getElementById('galeriaPreview');
+            preview.innerHTML = '';
+            const files = this.files;
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const div = document.createElement('div');
+                    div.className = 'galeria-preview-item';
+                    div.innerHTML = `<img src="${event.target.result}" alt="Previsualización">`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('formModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                cerrarFormulario();
+            }
+        });
+    </script>
+</body>
+</html>
