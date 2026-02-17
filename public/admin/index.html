@@ -407,6 +407,14 @@
                         <img id="previewImage" class="image-preview" style="display: none;">
                     </div>
 
+                    <div class="form-group">
+                        <label>📍 Iframe de Google Maps (Opcional)</label>
+                        <textarea id="mapaEmbed" placeholder="Pega aquí el código iframe de Google Maps completo. Ej: &lt;iframe src=&quot;https://www.google.com/maps/embed?pb=...&quot;&gt;&lt;/iframe&gt;" style="min-height: 120px; font-family: monospace; font-size: 12px;"></textarea>
+                        <small style="color: #999; display: block; margin-top: 5px;">
+                            💡 Cómo: Ve a Google Maps → Busca la ubicación → Click en "Compartir" → "Insertar un mapa" → Copia el código iframe
+                        </small>
+                    </div>
+
                     <button type="submit" id="submitBtn">
                         <i class="fas fa-save"></i> Crear Propiedad
                     </button>
@@ -639,6 +647,7 @@
                     dormitorios: parseInt(document.getElementById('dormitorios').value),
                     banios: parseInt(document.getElementById('banios').value),
                     detalles: document.getElementById('detalles').value,
+                    mapa_embed: document.getElementById('mapaEmbed').value,
                     galeria: '[]'
                 };
 

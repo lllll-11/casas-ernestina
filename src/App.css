@@ -408,8 +408,8 @@ header {
 }
 
 .amenidades-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
@@ -419,6 +419,16 @@ header {
     border-radius: 8px;
     font-size: 14px;
     color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.amenidad-badge::before {
+    content: "✓";
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 16px;
 }
 
 .detalles-texto {

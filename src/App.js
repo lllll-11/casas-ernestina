@@ -112,7 +112,7 @@ function ModalDetalle({ propiedad, onClose }) {
                         <div className="amenidades-list">
                             {propiedad.amenidades && propiedad.amenidades.length > 0 ? (
                                 propiedad.amenidades.map((amenidad, idx) => (
-                                    <div key={idx} className="amenidad-badge">✓ {amenidad}</div>
+                                    <div key={idx} className="amenidad-badge">{amenidad}</div>
                                 ))
                             ) : (
                                 <p style={{ color: '#999' }}>No hay amenidades disponibles</p>
@@ -259,11 +259,28 @@ function App() {
             const data = await response.json();
             
             // Parsear amenidades y galeria si vienen como strings JSON
-            const propiedadesProcesadas = data.map(p => ({
-                ...p,
-                amenidades: typeof p.amenidades === 'string' ? JSON.parse(p.amenidades || '[]') : (p.amenidades || []),
-                galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || [])
-            }));
+            const propiedadesProcesadas = data.map(p => {
+                let amenidades = [];
+                
+                // Manejar amenidades que vienen como string (separadas por coma)
+                if (typeof p.amenidades === 'string') {
+                    if (p.amenidades.startsWith('[')) {
+                        // JSON array
+                        amenidades = JSON.parse(p.amenidades || '[]');
+                    } else {
+                        // String separado por comas
+                        amenidades = p.amenidades.split(',').map(a => a.trim()).filter(a => a);
+                    }
+                } else if (Array.isArray(p.amenidades)) {
+                    amenidades = p.amenidades;
+                }
+                
+                return {
+                    ...p,
+                    amenidades: amenidades,
+                    galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || [])
+                };
+            });
             
             setPropiedades(propiedadesProcesadas);
         } catch (error) {
