@@ -445,7 +445,11 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api';
+        // Detectar API URL según el entorno
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000/api'
+            : 'https://casas-api.onrender.com/api';
+        
         let selectedImageFile = null;
         let selectedImageFiles = [];
 

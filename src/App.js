@@ -110,9 +110,13 @@ function ModalDetalle({ propiedad, onClose }) {
                     <div className="amenidades">
                         <h3>Amenidades</h3>
                         <div className="amenidades-list">
-                            {propiedad.amenidades.map((amenidad, idx) => (
-                                <div key={idx} className="amenidad-badge">✓ {amenidad}</div>
-                            ))}
+                            {propiedad.amenidades && propiedad.amenidades.length > 0 ? (
+                                propiedad.amenidades.map((amenidad, idx) => (
+                                    <div key={idx} className="amenidad-badge">✓ {amenidad}</div>
+                                ))
+                            ) : (
+                                <p style={{ color: '#999' }}>No hay amenidades disponibles</p>
+                            )}
                         </div>
                     </div>
                     
@@ -172,7 +176,7 @@ function ModalDetalle({ propiedad, onClose }) {
                         </a>
                     </div>
                     
-                    {propiedad.galeria && (
+                    {propiedad.galeria && propiedad.galeria.length > 0 && (
                         <div className="galeria-seccion">
                             <h3>Más fotos del lugar</h3>
                             <div className="galeria-grid">
@@ -253,7 +257,15 @@ function App() {
         try {
             const response = await fetch(`${API_URL}/propiedades`);
             const data = await response.json();
-            setPropiedades(data);
+            
+            // Parsear amenidades y galeria si vienen como strings JSON
+            const propiedadesProcesadas = data.map(p => ({
+                ...p,
+                amenidades: typeof p.amenidades === 'string' ? JSON.parse(p.amenidades || '[]') : (p.amenidades || []),
+                galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || [])
+            }));
+            
+            setPropiedades(propiedadesProcesadas);
         } catch (error) {
             console.error('Error cargando propiedades:', error);
         }
