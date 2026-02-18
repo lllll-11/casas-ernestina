@@ -83,7 +83,7 @@ async function initializeDatabase() {
                 dormitorios INTEGER NOT NULL,
                 banios INTEGER NOT NULL,
                 amenidades TEXT DEFAULT '[]',
-                detalles TEXT NOT NULL,
+                detalles TEXT DEFAULT '',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
@@ -205,7 +205,7 @@ app.post('/api/propiedades', async (req, res) => {
                 JSON.stringify(galeria || []),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedes, dormitorios, banios,
-                JSON.stringify(amenidades || []), detalles
+                JSON.stringify(amenidades || []), detalles || ''
             ]
         );
 
@@ -244,7 +244,7 @@ app.put('/api/propiedades/:id', async (req, res) => {
                 JSON.stringify(galeria || []),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedes, dormitorios, banios,
-                JSON.stringify(amenidades || []), detalles, req.params.id
+                JSON.stringify(amenidades || []), detalles || '', req.params.id
             ]
         );
 
