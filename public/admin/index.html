@@ -634,6 +634,8 @@
             try {
                 // Subir imagen a Cloudinary
                 const imgData = await uploadImageToCloudinary(selectedImageFile);
+                
+                console.log('✅ Imagen subida:', imgData);
 
                 const propiedadData = {
                     titulo: document.getElementById('titulo').value,
@@ -651,13 +653,19 @@
                     galeria: '[]'
                 };
 
+                console.log('📋 Datos a enviar:', propiedadData);
+
                 const response = await fetch(`${API_URL}/propiedades`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(propiedadData)
                 });
 
-                if (!response.ok) throw new Error('Error creando propiedad');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('❌ Error del servidor:', errorData);
+                    throw new Error(JSON.stringify(errorData));
+                }
 
                 showAlert('✅ Propiedad creada exitosamente', 'success');
                 document.getElementById('formPropiedad').reset();

@@ -195,6 +195,7 @@ app.post('/api/propiedades', async (req, res) => {
 
         // Validaciones
         if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
+            console.error('❌ Validación fallida:', { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion });
             return res.status(400).json({ 
                 error: 'Faltan campos requeridos',
                 recibidos: { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion }
