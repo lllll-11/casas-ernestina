@@ -83,7 +83,6 @@ async function initializeDatabase() {
                 dormitorios INTEGER NOT NULL,
                 banios INTEGER NOT NULL,
                 amenidades TEXT DEFAULT '[]',
-                detalles TEXT DEFAULT '',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
@@ -132,8 +131,7 @@ app.get('/api/propiedades', async (req, res) => {
             huespedes: row.huespedes,
             dormitorios: row.dormitorios,
             banios: row.banios,
-            amenidades: JSON.parse(row.amenidades || '[]'),
-            detalles: row.detalles
+            amenidades: JSON.parse(row.amenidades || '[]')
         }));
         res.json(propiedades);
     } catch (error) {
@@ -164,8 +162,7 @@ app.get('/api/propiedades/:id', async (req, res) => {
             huespedes: row.huespedes,
             dormitorios: row.dormitorios,
             banios: row.banios,
-            amenidades: JSON.parse(row.amenidades || '[]'),
-            detalles: row.detalles
+            amenidades: JSON.parse(row.amenidades || '[]')
         };
         res.json(propiedad);
     } catch (error) {
@@ -180,7 +177,7 @@ app.post('/api/propiedades', async (req, res) => {
         const {
             titulo, categoria, precio, rating, img, galeria,
             ubicacion, mapa_embed, descripcion, huespedes,
-            dormitorios, banios, amenidades, detalles
+            dormitorios, banios, amenidades
         } = req.body;
 
         // Validaciones
@@ -198,14 +195,14 @@ app.post('/api/propiedades', async (req, res) => {
             `INSERT INTO propiedades (
                 titulo, categoria, precio, rating, img, galeria,
                 ubicacion, mapa_embed, descripcion, huespedes,
-                dormitorios, banios, amenidades, detalles
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                dormitorios, banios, amenidades
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 titulo, categoria, precio, rating || '5.0', img,
                 JSON.stringify(galeria || []),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedes, dormitorios, banios,
-                JSON.stringify(amenidades || []), detalles || ''
+                JSON.stringify(amenidades || [])
             ]
         );
 
@@ -222,7 +219,7 @@ app.put('/api/propiedades/:id', async (req, res) => {
         const {
             titulo, categoria, precio, rating, img, galeria,
             ubicacion, mapa_embed, descripcion, huespedes,
-            dormitorios, banios, amenidades, detalles
+            dormitorios, banios, amenidades
         } = req.body;
 
         console.log('✏️  Actualizando propiedad ID:', req.params.id);
@@ -237,14 +234,14 @@ app.put('/api/propiedades/:id', async (req, res) => {
                 titulo = ?, categoria = ?, precio = ?, rating = ?, img = ?,
                 galeria = ?, ubicacion = ?, mapa_embed = ?, descripcion = ?,
                 huespedes = ?, dormitorios = ?, banios = ?, amenidades = ?,
-                detalles = ?, updated_at = CURRENT_TIMESTAMP
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?`,
             [
                 titulo, categoria, precio, rating || '5.0', img,
                 JSON.stringify(galeria || []),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedes, dormitorios, banios,
-                JSON.stringify(amenidades || []), detalles || '', req.params.id
+                JSON.stringify(amenidades || []), req.params.id
             ]
         );
 
