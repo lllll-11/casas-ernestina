@@ -180,9 +180,25 @@ app.post('/api/propiedades', async (req, res) => {
             dormitorios, banios, amenidades
         } = req.body;
 
+        console.log('📝 Datos recibidos:', {
+            titulo: !!titulo,
+            categoria: !!categoria,
+            precio: !!precio,
+            ubicacion: !!ubicacion,
+            img: !!img,
+            descripcion: !!descripcion,
+            huespedes,
+            dormitorios,
+            banios,
+            amenidades: !!amenidades
+        });
+
         // Validaciones
         if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
-            return res.status(400).json({ error: 'Faltan campos requeridos' });
+            return res.status(400).json({ 
+                error: 'Faltan campos requeridos',
+                recibidos: { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion }
+            });
         }
 
         if (!mapa_embed) {
