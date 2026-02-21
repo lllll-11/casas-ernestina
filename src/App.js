@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import HeroCarousel from './components/HeroCarousel';
-import TestimonialsSection from './components/TestimonialsSection';
+import InfoCardsSection from './components/InfoCardsSection';
 import Footer from './components/Footer';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://casas-api.onrender.com/api';
@@ -331,7 +331,7 @@ function App() {
                 </div>
             </div>
 
-            <TestimonialsSection />
+            <InfoCardsSection />
 
             <ModalDetalle
                 propiedad={propiedadSeleccionada}
