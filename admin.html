@@ -217,6 +217,40 @@
             gap: 12px;
         }
 
+        .galeria-dropzone {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        .galeria-dropzone:hover {
+            border-color: var(--primary);
+            background: #fff5f7;
+        }
+
+        .galeria-dropzone.dragover {
+            border-color: var(--primary);
+            background: #fff5f7;
+            box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
+        }
+
+        .galeria-dropzone i {
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .galeria-dropzone p {
+            margin: 0;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
         .galeria-preview-item {
             position: relative;
             width: 100%;
@@ -517,7 +551,7 @@
                     <h2 id="formTitle">Nueva Propiedad</h2>
                     <button class="close-btn" onclick="cerrarFormulario()">&times;</button>
                 </div>
-                <form id="propiedadForm" onsubmit="Propiguardaredad(event)">
+                <form id="propiedadForm" onsubmit="guardarPropiedad(event)">
                     <input type="hidden" id="propiedadId">
 
                     <div class="form-row">
@@ -553,8 +587,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Galería de Imágenes</label>
-                        <input type="file" id="galeria" accept="image/*" multiple>
+                        <label>Galería de Imágenes (arrastra aquí)</label>
+                        <div id="galeriaDropzone" class="galeria-dropzone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra imágenes aquí o haz clic para seleccionar</p>
+                            <input type="file" id="galeria" accept="image/*" multiple style="display: none;">
+                        </div>
                         <div id="galeriaPreview" class="galeria-preview"></div>
                     </div>
 
@@ -902,6 +940,37 @@
                 };
                 reader.readAsDataURL(file);
             }
+        });
+
+        // Drag and Drop para galería
+        const galeriaDropzone = document.getElementById('galeriaDropzone');
+        const galeriaInput = document.getElementById('galeria');
+
+        galeriaDropzone.addEventListener('click', () => galeriaInput.click());
+
+        galeriaDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            galeriaDropzone.classList.add('dragover');
+        });
+
+        galeriaDropzone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            galeriaDropzone.classList.remove('dragover');
+        });
+
+        galeriaDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            galeriaDropzone.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            galeriaInput.files = files;
+
+            // Trigger change event
+            const event = new Event('change', { bubbles: true });
+            galeriaInput.dispatchEvent(event);
         });
 
         // Cerrar modal al hacer clic fuera

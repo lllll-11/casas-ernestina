@@ -165,15 +165,13 @@ function ModalDetalle({ propiedad, onClose }) {
                     </div>
 
                     <div className="precio-detalle">
-                        <p>Precio por noche</p>
-                        <h2>${propiedad.precio} MXN</h2>
                         <a
-                            href={`https://wa.me/529711924204?text=Hola,%20estoy%20interesado%20en%20reservar%20${propiedad.titulo}%20en%20${propiedad.ubicacion}.%20¿Cuál%20es%20la%20disponibilidad?`}
+                            href={`https://wa.me/529711924204?text=Hola,%20estoy%20interesado%20en%20reservar%20${propiedad.titulo}%20en%20${propiedad.ubicacion}.%20¿Cuál%20es%20el%20precio%20y%20disponibilidad?`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="btn-reservar"
                         >
-                            <i className="fab fa-whatsapp"></i> Reservar ahora
+                            <i className="fab fa-whatsapp"></i> Consultar precio y disponibilidad
                         </a>
                     </div>
 

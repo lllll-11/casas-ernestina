@@ -585,18 +585,6 @@ header {
     margin-top: 20px;
 }
 
-.precio-detalle p {
-    margin: 0 0 8px 0;
-    color: var(--gray);
-    font-size: 14px;
-}
-
-.precio-detalle h2 {
-    font-size: 32px;
-    margin: 0 0 16px 0;
-    color: var(--text);
-}
-
 .btn-reservar {
     width: 100%;
     padding: 14px;
