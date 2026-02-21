@@ -101,7 +101,6 @@ header {
     font-size: 20px;
     color: var(--gray);
     transition: color 0.3s;
-    display: inline-block;
 }
 
 .cat-btn:hover {
