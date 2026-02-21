@@ -259,10 +259,11 @@ function App() {
             const response = await fetch(`${API_URL}/propiedades`);
             const data = await response.json();
             
-            // Parsear galeria si viene como string JSON
+            // Parsear galeria y amenidades si vienen como string JSON
             const propiedadesProcesadas = data.map(p => ({
                 ...p,
-                galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || [])
+                galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || []),
+                amenidades: typeof p.amenidades === 'string' ? JSON.parse(p.amenidades || '[]') : (Array.isArray(p.amenidades) ? p.amenidades : [])
             }));
             setPropiedades(propiedadesProcesadas);
         } catch (error) {
