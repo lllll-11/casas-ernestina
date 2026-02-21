@@ -14,13 +14,12 @@ function AdminPanel() {
         img: '',
         galeria: [],
         ubicacion: '',
-        coordenadas: [0, 0],
+        mapa_embed: '',
         descripcion: '',
         huespedes: 1,
         dormitorios: 1,
         banios: 1,
-        amenidades: [],
-        detalles: ''
+        amenidades: []
     });
 
     const API_URL = 'http://localhost:5000/api';
@@ -49,12 +48,9 @@ function AdminPanel() {
         if (['huespedes', 'dormitorios', 'banios'].includes(name)) {
             setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
         } else if (name === 'amenidades') {
-            setFormData(prev => ({ ...prev, [name]: value.split(',').map(a => a.trim()) }));
+            setFormData(prev => ({ ...prev, [name]: value.split(',').map(a => a.trim()).filter(a => a) }));
         } else if (name === 'galeria') {
             setFormData(prev => ({ ...prev, [name]: value.split('\n').map(a => a.trim()).filter(a => a) }));
-        } else if (name === 'coordenadas') {
-            const [lat, lng] = value.split(',');
-            setFormData(prev => ({ ...prev, coordenadas: [parseFloat(lat), parseFloat(lng)] }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -116,13 +112,12 @@ function AdminPanel() {
             img: '',
             galeria: [],
             ubicacion: '',
-            coordenadas: [0, 0],
+            mapa_embed: '',
             descripcion: '',
             huespedes: 1,
             dormitorios: 1,
             banios: 1,
-            amenidades: [],
-            detalles: ''
+            amenidades: []
         });
         setEditingId(null);
         setShowForm(false);
@@ -211,14 +206,6 @@ function AdminPanel() {
                                 onChange={handleInputChange}
                                 required
                             />
-                            <input
-                                type="text"
-                                name="coordenadas"
-                                placeholder="Coordenadas (lat,lng)"
-                                value={formData.coordenadas.join(',')}
-                                onChange={handleInputChange}
-                                required
-                            />
                         </div>
 
                         <textarea
@@ -260,15 +247,6 @@ function AdminPanel() {
                             value={formData.amenidades.join(', ')}
                             onChange={handleInputChange}
                             rows="2"
-                        ></textarea>
-
-                        <textarea
-                            name="detalles"
-                            placeholder="Detalles"
-                            value={formData.detalles}
-                            onChange={handleInputChange}
-                            rows="3"
-                            required
                         ></textarea>
 
                         <div className="form-buttons">

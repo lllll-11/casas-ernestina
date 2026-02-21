@@ -517,7 +517,7 @@
                     <h2 id="formTitle">Nueva Propiedad</h2>
                     <button class="close-btn" onclick="cerrarFormulario()">&times;</button>
                 </div>
-                <form id="propiedadForm" onsubmit="guardarPropiedad(event)">
+                <form id="propiedadForm" onsubmit="Propiguardaredad(event)">
                     <input type="hidden" id="propiedadId">
 
                     <div class="form-row">
@@ -591,12 +591,7 @@
 
                     <div class="form-group">
                         <label>Amenidades (separadas por coma)</label>
-                        <textarea id="amenidades" placeholder="WiFi, Piscina, Aire acondicionado"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Detalles Completos *</label>
-                        <textarea id="detalles" required></textarea>
+                        <textarea id="amenidades" placeholder="Ej: WiFi, Piscina, TV, Cocina"></textarea>
                     </div>
 
                     <div class="form-buttons">
@@ -716,8 +711,7 @@
                 document.getElementById('huespedes').value = prop.huespedes;
                 document.getElementById('dormitorios').value = prop.dormitorios;
                 document.getElementById('banios').value = prop.banios;
-                document.getElementById('amenidades').value = prop.amenidades.join(', ');
-                document.getElementById('detalles').value = prop.detalles;
+                document.getElementById('amenidades').value = (prop.amenidades && Array.isArray(prop.amenidades)) ? prop.amenidades.join(', ') : '';
 
                 // Mostrar previsualizaciones de imágenes existentes
                 const imgPreview = document.getElementById('imgPreview');
@@ -799,10 +793,6 @@
                 }
 
                 const mapa_embed = document.getElementById('mapa_embed').value;
-                const amenidades = document.getElementById('amenidades').value
-                    .split(',')
-                    .map(a => a.trim())
-                    .filter(a => a);
 
                 const data = {
                     titulo: document.getElementById('titulo').value,
@@ -817,8 +807,7 @@
                     huespedes: parseInt(document.getElementById('huespedes').value),
                     dormitorios: parseInt(document.getElementById('dormitorios').value),
                     banios: parseInt(document.getElementById('banios').value),
-                    amenidades,
-                    detalles: document.getElementById('detalles').value
+                    amenidades: document.getElementById('amenidades').value.split(',').map(a => a.trim()).filter(a => a)
                 };
 
                 const method = id ? 'PUT' : 'POST';

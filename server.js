@@ -131,7 +131,7 @@ app.get('/api/propiedades', async (req, res) => {
             huespedes: row.huespedes,
             dormitorios: row.dormitorios,
             banios: row.banios,
-            amenidades: JSON.parse(row.amenidades || '[]')
+            amenidades: JSON.parse(row.amenidades || '[]'),
         }));
         res.json(propiedades);
     } catch (error) {
@@ -162,7 +162,7 @@ app.get('/api/propiedades/:id', async (req, res) => {
             huespedes: row.huespedes,
             dormitorios: row.dormitorios,
             banios: row.banios,
-            amenidades: JSON.parse(row.amenidades || '[]')
+            amenidades: JSON.parse(row.amenidades || '[]'),
         };
         res.json(propiedad);
     } catch (error) {
@@ -196,7 +196,7 @@ app.post('/api/propiedades', async (req, res) => {
         // Validaciones
         if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
             console.error('❌ Validación fallida:', { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion });
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Faltan campos requeridos',
                 recibidos: { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion }
             });
@@ -258,7 +258,8 @@ app.put('/api/propiedades/:id', async (req, res) => {
                 JSON.stringify(galeria || []),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedes, dormitorios, banios,
-                JSON.stringify(amenidades || []), req.params.id
+                JSON.stringify(amenidades || []),
+                req.params.id
             ]
         );
 

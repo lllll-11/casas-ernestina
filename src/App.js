@@ -106,22 +106,18 @@ function ModalDetalle({ propiedad, onClose }) {
                             </div>
                         </div>
                     </div>
-                    
-                    <div className="amenidades">
-                        <h3>Amenidades</h3>
-                        <div className="amenidades-list">
-                            {propiedad.amenidades && propiedad.amenidades.length > 0 ? (
-                                propiedad.amenidades.map((amenidad, idx) => (
-                                    <div key={idx} className="amenidad-badge">{amenidad}</div>
-                                ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No hay amenidades disponibles</p>
-                            )}
+
+                    {propiedad.amenidades && propiedad.amenidades.length > 0 && (
+                        <div className="amenidades-seccion">
+                            <h3>Amenidades</h3>
+                            <ul className="amenidades-lista">
+                                {propiedad.amenidades.map((amenidad, idx) => (
+                                    <li key={idx}>{amenidad}</li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
-                    
-                    <p className="detalles-texto">{propiedad.detalles}</p>
-                    
+                    )}
+
                     <div className="ubicacion-seccion">
                         <h3><i className="fas fa-map-marker-alt"></i> Ubicación</h3>
                         <p className="ubicacion-texto">{propiedad.ubicacion}</p>
@@ -258,30 +254,11 @@ function App() {
             const response = await fetch(`${API_URL}/propiedades`);
             const data = await response.json();
             
-            // Parsear amenidades y galeria si vienen como strings JSON
-            const propiedadesProcesadas = data.map(p => {
-                let amenidades = [];
-                
-                // Manejar amenidades que vienen como string (separadas por coma)
-                if (typeof p.amenidades === 'string') {
-                    if (p.amenidades.startsWith('[')) {
-                        // JSON array
-                        amenidades = JSON.parse(p.amenidades || '[]');
-                    } else {
-                        // String separado por comas
-                        amenidades = p.amenidades.split(',').map(a => a.trim()).filter(a => a);
-                    }
-                } else if (Array.isArray(p.amenidades)) {
-                    amenidades = p.amenidades;
-                }
-                
-                return {
-                    ...p,
-                    amenidades: amenidades,
-                    galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || [])
-                };
-            });
-            
+            // Parsear galeria si viene como string JSON
+            const propiedadesProcesadas = data.map(p => ({
+                ...p,
+                galeria: typeof p.galeria === 'string' ? JSON.parse(p.galeria || '[]') : (p.galeria || [])
+            }));
             setPropiedades(propiedadesProcesadas);
         } catch (error) {
             console.error('Error cargando propiedades:', error);
