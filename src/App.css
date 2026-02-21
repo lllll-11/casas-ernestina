@@ -101,6 +101,9 @@ header {
     font-size: 20px;
     color: var(--gray);
     transition: color 0.3s;
+    display: block;
+    width: 100%;
+    text-align: center;
 }
 
 .cat-btn:hover {
