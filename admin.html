@@ -756,13 +756,23 @@
     <div class="alerts-container" id="alerts"></div>
 
     <script>
-        const API_URL = 'https://casas-api.onrender.com/api';
+        // Detectar automáticamente el API_URL basado en el ambiente
+        const env = window.location.hostname;
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        let API_URL;
+        if (isLocal) {
+            API_URL = 'http://localhost:5000/api';
+        } else {
+            API_URL = 'https://casas-api.onrender.com/api';
+        }
+        
         let estadoFormulario = {
             galeria: [],
             propiedadId: null
         };
 
-        console.log('🎯 Admin Panel iniciado. API:', API_URL);
+        console.log('🎯 Admin Panel iniciado. Ambiente:', isLocal ? 'LOCAL' : 'PRODUCCIÓN', '| API:', API_URL);
         document.addEventListener('DOMContentLoaded', recargarPropiedades);
 
         // ==================== CARGA DE PROPIEDADES ====================
@@ -972,13 +982,33 @@
                 if (imgFile) {
                     const formData = new FormData();
                     formData.append('file', imgFile);
-                    const response = await fetch(`${API_URL}/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!response.ok) throw new Error('Error al subir imagen');
-                    const data = await response.json();
-                    imgUrl = data.url;
+                    
+                    try {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 60000); // 60 segundos timeout
+                        
+                        const response = await fetch(`${API_URL}/upload`, {
+                            method: 'POST',
+                            body: formData,
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeout);
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(`Error ${response.status}: ${errorData.message || 'Error al subir imagen'}`);
+                        }
+                        const data = await response.json();
+                        imgUrl = data.url;
+                        console.log('✅ Imagen principal subida:', imgUrl);
+                    } catch (fetchError) {
+                        if (fetchError.name === 'AbortError') {
+                            throw new Error('Tiempo de espera agotado. Intenta con una imagen más pequeña o verifica tu conexión.');
+                        }
+                        console.error('❌ Error de carga:', fetchError);
+                        throw new Error('Error de conexión al servidor. Verifica que el servidor esté ejecutándose en ' + API_URL);
+                    }
                 } else if (id) {
                     const propResponse = await fetch(`${API_URL}/propiedades/${id}`);
                     const prop = await propResponse.json();

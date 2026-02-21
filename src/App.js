@@ -281,7 +281,13 @@ function App() {
     return (
         <div>
             <header>
-                <img src="/logo-nombre.png" alt="Casas Maria Ernestina" className="logo" />
+                <div className="logo-section">
+                    <img src="/logo-nombre.png" alt="Casas Maria Ernestina" className="logo" />
+                    <div className="logo-text">
+                        <h1 className="logo-title">Casas Maria Ernestina</h1>
+                        <p className="logo-tagline">Experiencias de lujo en paraísos</p>
+                    </div>
+                </div>
                 <button className="hamburger-menu" onClick={() => setMenuAbierto(!menuAbierto)} title="Menú">
                     <span></span>
                     <span></span>

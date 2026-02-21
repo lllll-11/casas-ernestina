@@ -1,41 +1,29 @@
 import React from 'react';
 
-const testimonios = [
+const informacionCards = [
     {
         id: 1,
-        nombre: 'María García',
-        ciudad: 'Oaxaca',
-        rating: 5,
-        texto: 'Una experiencia increíble. La casa superó todas mis expectativas. El servicio fue excelente y el lugar hermoso.',
-        fecha: 'Hace 2 meses',
-        avatar: '👩‍💼'
+        titulo: 'Propiedades de Lujo',
+        descripcion: 'Selección cuidada de propiedades premium en ubicaciones paradisíacas con todas las comodidades.',
+        icon: 'fa-crown'
     },
     {
         id: 2,
-        nombre: 'Juan López',
-        ciudad: 'Puerto Vallarta',
-        rating: 5,
-        texto: 'Definitivamente volvería. Fue el mejor viaje en familia. Todo muy limpio y bien organizado.',
-        fecha: 'Hace 1 mes',
-        avatar: '👨‍💼'
+        titulo: 'Servicio Excepcional',
+        descripcion: 'Atención al cliente dedicada 24/7 para garantizar una experiencia memorable durante tu estadía.',
+        icon: 'fa-concierge-bell'
     },
     {
         id: 3,
-        nombre: 'Ana Martínez',
-        ciudad: 'Playa del Carmen',
-        rating: 5,
-        texto: 'Casas Maria Ernestina ofrece propiedades de lujo incomparables. Altamente recomendado para vacaciones premium.',
-        fecha: 'Hace 3 semanas',
-        avatar: '👩‍🦰'
+        titulo: 'Ubicaciones Privilegiadas',
+        descripcion: 'Casas ubicadas en los mejores destinos de playa con vistas espectaculares y acceso exclusivo.',
+        icon: 'fa-map-location-dot'
     },
     {
         id: 4,
-        nombre: 'Carlos Rodríguez',
-        ciudad: 'Cancún',
-        rating: 5,
-        texto: 'La atención al detalle es notoria. Una joya escondida para aquellos que buscan lo mejor en hospedaje.',
-        fecha: 'Hace 2 semanas',
-        avatar: '👨‍🦱'
+        titulo: 'Privacidad y Comodidad',
+        descripcion: 'Espacios amplios y bien equipados diseñados para tu confort y relajación total.',
+        icon: 'fa-heart'
     }
 ];
 
@@ -44,29 +32,19 @@ function TestimonialsSection() {
         <section className="testimonials-section">
             <div className="testimonials-container">
                 <div className="testimonials-header">
-                    <h2>Lo que dicen nuestros huéspedes</h2>
-                    <p>Experiencias reales de personas que han disfrutado nuestras propiedades</p>
+                    <h2>Por qué elegirnos</h2>
+                    <p>Descubre lo que hace especial a Casas Maria Ernestina</p>
                 </div>
 
                 <div className="testimonials-grid">
-                    {testimonios.map((testimonio) => (
-                        <div key={testimonio.id} className="testimonial-card">
-                            <div className="testimonial-header-card">
-                                <div className="testimonial-avatar">{testimonio.avatar}</div>
-                                <div className="testimonial-info">
-                                    <h4 className="testimonial-name">{testimonio.nombre}</h4>
-                                    <p className="testimonial-city">{testimonio.ciudad}</p>
-                                </div>
+                    {informacionCards.map((card) => (
+                        <div key={card.id} className="testimonial-card info-card">
+                            <div className="card-icon-wrapper">
+                                <i className={`fas ${card.icon}`}></i>
                             </div>
 
-                            <div className="testimonial-rating">
-                                {[...Array(testimonio.rating)].map((_, i) => (
-                                    <span key={i} className="star">★</span>
-                                ))}
-                            </div>
-
-                            <p className="testimonial-text">{testimonio.texto}</p>
-                            <p className="testimonial-date">{testimonio.fecha}</p>
+                            <h3 className="card-title">{card.titulo}</h3>
+                            <p className="card-description">{card.descripcion}</p>
                         </div>
                     ))}
                 </div>
