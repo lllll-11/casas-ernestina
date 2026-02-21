@@ -22,7 +22,7 @@ function AdminPanel() {
         amenidades: []
     });
 
-    const API_URL = 'http://localhost:5000/api';
+    const API_URL = 'https://casas-api.onrender.com/api';
 
     // Cargar propiedades
     useEffect(() => {
