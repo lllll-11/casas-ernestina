@@ -319,7 +319,7 @@ function App() {
                                     <h3>{p.ubicacion}</h3>
                                 </div>
                                 <p className="desc">{p.titulo}</p>
-                                <p className="precio"><b>${p.precio} MXN</b> noche</p>
+                                <p className="precio">Precio por noche</p>
                             </div>
                         </div>
                     ))}
