@@ -210,11 +210,72 @@
             object-fit: cover;
         }
 
-        .galeria-preview {
-            margin-top: 12px;
+        .galeria-grid-actual {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 12px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .galeria-grid-new {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .galeria-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f0f0f0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .galeria-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .galeria-item-actual {
+            opacity: 0.8;
+        }
+
+        .galeria-item-new {
+            border: 2px solid var(--primary);
+        }
+
+        .galeria-item-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .galeria-item:hover .galeria-item-remove {
+            opacity: 1;
+        }
+
+        .galeria-item-remove:hover {
+            background: rgba(244, 67, 54, 1);
+            transform: scale(1.1);
         }
 
         .galeria-dropzone {
@@ -587,13 +648,24 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Galería de Imágenes (arrastra aquí)</label>
-                        <div id="galeriaDropzone" class="galeria-dropzone">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Arrastra imágenes aquí o haz clic para seleccionar</p>
-                            <input type="file" id="galeria" accept="image/*" multiple style="display: none;">
+                        <label>Galería de Imágenes</label>
+                        <div id="galeriaSection">
+                            <div id="galeriaExistente" style="display:none;">
+                                <p style="font-size: 13px; color: #666; margin-bottom: 12px;"><strong>Imágenes actuales</strong> (sin cambios)</p>
+                                <div id="galeriaExistentePreview" class="galeria-grid-actual"></div>
+                            </div>
+
+                            <div id="galeriaNueva">
+                                <p style="font-size: 13px; color: #666; margin-bottom: 12px; margin-top: 20px;"><strong>Agregar nuevas imágenes</strong></p>
+                                <div id="galeriaDropzone" class="galeria-dropzone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Arrastra imágenes aquí o haz clic para seleccionar</p>
+                                    <small>Puedes agregar múltiples imágenes sin límite</small>
+                                    <input type="file" id="galeria" accept="image/*" multiple style="display: none;">
+                                </div>
+                                <div id="galeriaNewPreview" class="galeria-grid-new"></div>
+                            </div>
                         </div>
-                        <div id="galeriaPreview" class="galeria-preview"></div>
                     </div>
 
                     <div class="form-group">
@@ -659,7 +731,14 @@
     <script>
         const API_URL = 'https://casas-api.onrender.com/api';
 
-        // Debug: verificar que se está accediendo al servidor
+        // Estado global para manejar la galería
+        let estadoFormulario = {
+            galeriaExistente: [],
+            galeriaNueva: [],
+            propiedadId: null
+        };
+
+        // Debug
         console.log('🎯 Admin Panel iniciado. API URL:', API_URL);
         console.log('📍 Origen:', window.location.origin);
 
@@ -723,8 +802,17 @@
             document.getElementById('formTitle').textContent = 'Nueva Propiedad';
             document.getElementById('propiedadForm').reset();
             document.getElementById('imgPreview').innerHTML = '';
-            document.getElementById('galeriaPreview').innerHTML = '';
             document.getElementById('img').required = true;
+
+            // Reset estado galería para nuevo formulario
+            estadoFormulario.galeriaExistente = [];
+            estadoFormulario.galeriaNueva = [];
+            estadoFormulario.propiedadId = null;
+            document.getElementById('galeriaExistente').style.display = 'none';
+            document.getElementById('galeriaExistentePreview').innerHTML = '';
+            document.getElementById('galeriaNewPreview').innerHTML = '';
+            document.getElementById('galeria').value = '';
+
             document.getElementById('formModal').classList.add('active');
         }
 
@@ -751,23 +839,23 @@
                 document.getElementById('banios').value = prop.banios;
                 document.getElementById('amenidades').value = (prop.amenidades && Array.isArray(prop.amenidades)) ? prop.amenidades.join(', ') : '';
 
-                // Mostrar previsualizaciones de imágenes existentes
+                // Mostrar imagen principal
                 const imgPreview = document.getElementById('imgPreview');
                 imgPreview.innerHTML = `<div class="img-preview-item"><img src="${prop.img}" alt="Imagen actual"></div>`;
 
-                const galeriaPreview = document.getElementById('galeriaPreview');
-                galeriaPreview.innerHTML = '';
-                prop.galeria.forEach(url => {
-                    const div = document.createElement('div');
-                    div.className = 'galeria-preview-item';
-                    div.innerHTML = `<img src="${url}" alt="Imagen galería">`;
-                    galeriaPreview.appendChild(div);
-                });
+                // Manejar galería existente
+                estadoFormulario.galeriaExistente = Array.isArray(prop.galeria) ? prop.galeria : [];
+                estadoFormulario.galeriaNueva = [];
+                estadoFormulario.propiedadId = id;
 
-                // Limpiar los inputs de archivo
+                // Limpiar inputs
                 document.getElementById('img').value = '';
                 document.getElementById('img').required = false;
                 document.getElementById('galeria').value = '';
+
+                // Mostrar galerías
+                mostrarGaleriaExistente();
+                document.getElementById('galeriaNewPreview').innerHTML = '';
 
                 document.getElementById('formModal').classList.add('active');
             } catch (error) {
@@ -776,13 +864,79 @@
             }
         }
 
+        function mostrarGaleriaExistente() {
+            const container = document.getElementById('galeriaExistentePreview');
+            const seccion = document.getElementById('galeriaExistente');
+
+            if (estadoFormulario.galeriaExistente.length === 0) {
+                seccion.style.display = 'none';
+                return;
+            }
+
+            seccion.style.display = 'block';
+            container.innerHTML = '';
+
+            estadoFormulario.galeriaExistente.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.className = 'galeria-item galeria-item-actual';
+                div.innerHTML = `
+                    <img src="${url}" alt="Imagen ${idx + 1}">
+                    <button type="button" class="galeria-item-remove" data-existing-idx="${idx}" title="Eliminar imagen">
+                        ×
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            // Event listeners para eliminar
+            document.querySelectorAll('.galeria-item-remove[data-existing-idx]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const idx = parseInt(btn.dataset.existingIdx);
+                    estadoFormulario.galeriaExistente.splice(idx, 1);
+                    mostrarGaleriaExistente();
+                });
+            });
+        }
+
+        function mostrarGaleriaNueva() {
+            const container = document.getElementById('galeriaNewPreview');
+            container.innerHTML = '';
+
+            if (estadoFormulario.galeriaNueva.length === 0) {
+                return;
+            }
+
+            estadoFormulario.galeriaNueva.forEach((dataUrl, idx) => {
+                const div = document.createElement('div');
+                div.className = 'galeria-item galeria-item-new';
+                div.innerHTML = `
+                    <img src="${dataUrl}" alt="Nueva imagen ${idx + 1}">
+                    <button type="button" class="galeria-item-remove" data-new-idx="${idx}" title="Eliminar imagen">
+                        ×
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            // Event listeners para eliminar
+            document.querySelectorAll('.galeria-item-remove[data-new-idx]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const idx = parseInt(btn.dataset.newIdx);
+                    estadoFormulario.galeriaNueva.splice(idx, 1);
+                    mostrarGaleriaNueva();
+                });
+            });
+        }
+
         async function guardarPropiedad(event) {
             event.preventDefault();
 
             const id = document.getElementById('propiedadId').value;
             const imgFile = document.getElementById('img').files[0];
             const galeriaFiles = document.getElementById('galeria').files;
-            
+
             try {
                 let imgUrl = '';
                 let galeriaUrls = [];
@@ -800,7 +954,6 @@
                     if (!data.url) throw new Error('No se recibió URL de imagen');
                     imgUrl = data.url;
                 } else if (id) {
-                    // Si es edición y no hay nueva imagen, obtener la antigua
                     const propResponse = await fetch(`${API_URL}/propiedades/${id}`);
                     if (!propResponse.ok) throw new Error('Error al obtener propiedad anterior');
                     const prop = await propResponse.json();
@@ -809,7 +962,10 @@
                     throw new Error('La imagen principal es requerida');
                 }
 
-                // Subir imágenes de galería si existen
+                // Manejar galería: existente + nuevas
+                galeriaUrls = [...estadoFormulario.galeriaExistente];
+
+                // Subir nuevas imágenes de galería si existen
                 if (galeriaFiles.length > 0) {
                     const formData = new FormData();
                     for (let file of galeriaFiles) {
@@ -822,12 +978,7 @@
                     if (!response.ok) throw new Error(`Error al subir galerías: ${response.statusText}`);
                     const data = await response.json();
                     if (!data.urls) throw new Error('No se recibieron URLs de galería');
-                    galeriaUrls = data.urls;
-                } else if (id) {
-                    // Si es edición y no hay nuevas imágenes, obtener las antiguas
-                    const propResponse = await fetch(`${API_URL}/propiedades/${id}`);
-                    const prop = await propResponse.json();
-                    galeriaUrls = prop.galeria;
+                    galeriaUrls = galeriaUrls.concat(data.urls);
                 }
 
                 const mapa_embed = document.getElementById('mapa_embed').value;
@@ -853,7 +1004,7 @@
 
                 console.log(`📡 ${method === 'PUT' ? '✏️ Actualizando' : '📝 Creando'} propiedad:`, data.titulo);
                 console.log('📤 Enviando a:', url);
-                
+
                 const response = await fetch(url, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
@@ -870,7 +1021,7 @@
                 cerrarFormulario();
                 const mensaje = id ? '✓ Propiedad actualizada correctamente' : '✓ Propiedad creada correctamente';
                 mostrarAlerta(mensaje, 'success');
-                
+
                 console.log('🔄 Recargando lista de propiedades...');
                 await recargarPropiedades();
             } catch (error) {
@@ -927,19 +1078,17 @@
         });
 
         document.getElementById('galeria').addEventListener('change', function(e) {
-            const preview = document.getElementById('galeriaPreview');
-            preview.innerHTML = '';
             const files = this.files;
             for (let file of files) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    const div = document.createElement('div');
-                    div.className = 'galeria-preview-item';
-                    div.innerHTML = `<img src="${event.target.result}" alt="Previsualización">`;
-                    preview.appendChild(div);
+                    estadoFormulario.galeriaNueva.push(event.target.result);
+                    mostrarGaleriaNueva();
                 };
                 reader.readAsDataURL(file);
             }
+            // Reset input para poder seleccionar las mismas imágenes otra vez
+            this.value = '';
         });
 
         // Drag and Drop para galería
