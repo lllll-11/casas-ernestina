@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
+import HeroCarousel from './components/HeroCarousel';
+import TestimonialsSection from './components/TestimonialsSection';
+import Footer from './components/Footer';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://casas-api.onrender.com/api';
 
@@ -285,8 +288,10 @@ function App() {
                     <span></span>
                 </button>
             </header>
-            
+
             <MenuMovil isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
+
+            <HeroCarousel propiedades={propiedades} />
 
             <div className="categories">
                 {categorias.map(cat => (
@@ -326,10 +331,14 @@ function App() {
                 </div>
             </div>
 
-            <ModalDetalle 
-                propiedad={propiedadSeleccionada} 
+            <TestimonialsSection />
+
+            <ModalDetalle
+                propiedad={propiedadSeleccionada}
                 onClose={() => setPropiedadSeleccionada(null)}
             />
+
+            <Footer />
         </div>
     );
 }
