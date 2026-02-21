@@ -84,13 +84,13 @@ header {
     border: none;
     cursor: pointer;
     color: var(--gray);
-    font-size: 12px;
+    font-size: 13px;
     display: flex;
     flex-direction: column;
     align-items: center;
     transition: 0.3s;
     border-bottom: 2px solid transparent;
-    padding: 6px 12px;
+    padding: 8px 14px;
     gap: 2px;
     white-space: nowrap;
     scroll-snap-align: start;
@@ -121,13 +121,19 @@ header {
     color: var(--primary);
 }
 
+@media (min-width: 480px) {
+    .cat-btn {
+        font-size: 14px;
+    }
+}
+
 @media (min-width: 768px) {
     .categories {
         justify-content: center;
         gap: 40px;
         padding: 20px;
     }
-    
+
     .cat-btn {
         font-size: 16px;
         padding-bottom: 10px;
@@ -210,7 +216,7 @@ header {
 .badge {
     position: absolute;
     top: 8px;
-    right: 8px;
+    right: 12px;
     background: rgba(255,255,255,0.9);
     padding: 4px 8px;
     border-radius: 6px;
@@ -366,7 +372,7 @@ header {
 
 .modal-img {
     width: 100%;
-    height: 300px;
+    height: clamp(250px, 40vh, 400px);
     object-fit: cover;
     display: block;
 }
@@ -384,7 +390,7 @@ header {
 }
 
 .rating-header h1 {
-    font-size: 24px;
+    font-size: clamp(20px, 5.5vw, 32px);
     margin: 0;
     flex: 1;
 }
@@ -412,7 +418,7 @@ header {
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     margin-bottom: 24px;
     padding: 16px;
@@ -680,29 +686,33 @@ header {
         align-items: center;
         justify-content: center;
     }
-    
+
     .modal-content {
         width: 90%;
         max-width: 600px;
         max-height: 90vh;
         border-radius: 16px;
     }
-    
+
     .modal-img {
         height: 400px;
         border-radius: 16px 16px 0 0;
     }
-    
+
     .modal-body {
         padding: 32px;
     }
-    
+
     .rating-header h1 {
         font-size: 32px;
     }
-    
+
     .amenidades-list {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .info-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
@@ -714,7 +724,7 @@ header {
 }
 
 .galeria-seccion h3 {
-    font-size: 18px;
+    font-size: clamp(16px, 4vw, 18px);
     margin: 0 0 16px 0;
     color: var(--text);
 }
@@ -1144,7 +1154,7 @@ header {
 .hero-carousel {
     position: relative;
     width: 100%;
-    height: 300px;
+    height: min(300px, 45vh);
     margin: 0 0 60px 0;
     border-radius: 12px;
     overflow: hidden;
@@ -1329,7 +1339,7 @@ header {
 }
 
 .testimonials-header h2 {
-    font-size: 32px;
+    font-size: clamp(24px, 5vw, 32px);
     font-weight: 700;
     color: var(--text);
     margin: 0 0 12px 0;
@@ -1538,4 +1548,26 @@ header {
     margin-top: 8px !important;
     font-style: italic;
 }
+
+/* ==================== LANDSCAPE ORIENTATION OPTIMIZATION ==================== */
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .hero-carousel {
+        height: 200px;
+    }
+
+    .hero-title {
+        font-size: clamp(20px, 4vw, 32px);
+    }
+
+    .hero-subtitle {
+        font-size: 13px;
+    }
+
+    .hero-cta {
+        padding: 10px 24px;
+        font-size: 14px;
+    }
+}
+
 
