@@ -67,25 +67,30 @@ function Lightbox({ imagenes, indiceInicial, onClose }) {
 // Componente del Modal de Detalle
 function ModalDetalle({ propiedad, onClose }) {
     const [imagenLightbox, setImagenLightbox] = React.useState(null);
-    
+
     if (!propiedad) return null;
+
+    // Validar que la galería existe y es un array
+    const galeria = Array.isArray(propiedad.galeria) ? propiedad.galeria : [];
+    const amenidades = Array.isArray(propiedad.amenidades) ? propiedad.amenidades : [];
+    const mapaEmbed = propiedad.mapa_embed || '';
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <button className="close-btn" onClick={onClose}>✕</button>
-                
+
                 <img src={propiedad.img} alt={propiedad.titulo} className="modal-img" />
-                
+
                 <div className="modal-body">
                     <div className="rating-header">
                         <h1>{propiedad.titulo}</h1>
                         <div className="rating">★ {propiedad.rating}</div>
                     </div>
-                    
+
                     <p className="ubicacion-detalle">{propiedad.ubicacion}</p>
                     <p className="descripcion-detalle">{propiedad.descripcion}</p>
-                    
+
                     <div className="info-grid">
                         <div className="info-item">
                             <i className="fas fa-users"></i>
@@ -107,11 +112,11 @@ function ModalDetalle({ propiedad, onClose }) {
                         </div>
                     </div>
 
-                    {propiedad.amenidades && propiedad.amenidades.length > 0 && (
+                    {amenidades.length > 0 && (
                         <div className="amenidades-seccion">
                             <h3>Amenidades</h3>
                             <ul className="amenidades-lista">
-                                {propiedad.amenidades.map((amenidad, idx) => (
+                                {amenidades.map((amenidad, idx) => (
                                     <li key={idx}>{amenidad}</li>
                                 ))}
                             </ul>
@@ -121,14 +126,14 @@ function ModalDetalle({ propiedad, onClose }) {
                     <div className="ubicacion-seccion">
                         <h3><i className="fas fa-map-marker-alt"></i> Ubicación</h3>
                         <p className="ubicacion-texto">{propiedad.ubicacion}</p>
-                        
+
                         <div className="mapa-container">
-                            {propiedad.mapa_embed ? (
+                            {mapaEmbed ? (
                                 (() => {
                                     // Extraer el src del iframe embed
-                                    const srcMatch = propiedad.mapa_embed.match(/src="([^"]+)"/);
+                                    const srcMatch = mapaEmbed.match(/src="([^"]+)"/);
                                     const mapSrc = srcMatch ? srcMatch[1] : null;
-                                    
+
                                     return mapSrc ? (
                                         <iframe
                                             title={`Mapa de ${propiedad.ubicacion}`}
@@ -148,8 +153,8 @@ function ModalDetalle({ propiedad, onClose }) {
                                 <p style={{ color: '#999', fontSize: '14px' }}>Ubicación no disponible</p>
                             )}
                         </div>
-                        
-                        <a 
+
+                        <a
                             href={`https://www.google.com/maps/search/${encodeURIComponent(propiedad.ubicacion)}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -158,11 +163,11 @@ function ModalDetalle({ propiedad, onClose }) {
                             <i className="fas fa-map"></i> Ver en Google Maps
                         </a>
                     </div>
-                    
+
                     <div className="precio-detalle">
                         <p>Precio por noche</p>
                         <h2>${propiedad.precio} MXN</h2>
-                        <a 
+                        <a
                             href={`https://wa.me/529711924204?text=Hola,%20estoy%20interesado%20en%20reservar%20${propiedad.titulo}%20en%20${propiedad.ubicacion}.%20¿Cuál%20es%20la%20disponibilidad?`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -171,16 +176,16 @@ function ModalDetalle({ propiedad, onClose }) {
                             <i className="fab fa-whatsapp"></i> Reservar ahora
                         </a>
                     </div>
-                    
-                    {propiedad.galeria && propiedad.galeria.length > 0 && (
+
+                    {galeria.length > 0 && (
                         <div className="galeria-seccion">
                             <h3>Más fotos del lugar</h3>
                             <div className="galeria-grid">
-                                {propiedad.galeria.map((img, idx) => (
-                                    <img 
-                                        key={idx} 
-                                        src={img} 
-                                        alt={`Foto ${idx + 1}`} 
+                                {galeria.map((img, idx) => (
+                                    <img
+                                        key={idx}
+                                        src={img}
+                                        alt={`Foto ${idx + 1}`}
                                         className="galeria-img"
                                         onClick={() => setImagenLightbox(idx)}
                                     />
@@ -190,10 +195,10 @@ function ModalDetalle({ propiedad, onClose }) {
                     )}
                 </div>
             </div>
-            
+
             {imagenLightbox !== null && (
-                <Lightbox 
-                    imagenes={propiedad.galeria} 
+                <Lightbox
+                    imagenes={galeria}
                     indiceInicial={imagenLightbox}
                     onClose={() => setImagenLightbox(null)}
                 />
