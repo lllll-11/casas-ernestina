@@ -56,6 +56,15 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname)));
 
+// Ruta para servir admin.html
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/admin/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Conexión a Turso
 let db;
 
