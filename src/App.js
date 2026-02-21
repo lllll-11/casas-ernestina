@@ -278,7 +278,7 @@ function App() {
     return (
         <div>
             <header>
-                <div className="logo">Casas Maria Ernestina</div>
+                <img src="/logo-nombre.png" alt="Casas Maria Ernestina" className="logo" />
                 <button className="hamburger-menu" onClick={() => setMenuAbierto(!menuAbierto)} title="Menú">
                     <span></span>
                     <span></span>
