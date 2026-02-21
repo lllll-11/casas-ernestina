@@ -92,13 +92,49 @@ async function initializeDatabase() {
         try {
             const result = await db.execute(`PRAGMA table_info(propiedades)`);
             const columnas = result.rows.map(row => row.name);
-            
+
             if (columnas.includes('coordenadas') && !columnas.includes('mapa_embed')) {
                 console.log('🔄 Migrando: renombrando coordenadas → mapa_embed');
                 await db.execute(`
                     ALTER TABLE propiedades RENAME COLUMN coordenadas TO mapa_embed
                 `);
                 console.log('✅ Migración completada');
+            }
+
+            // Migración: eliminar columna detalles si existe
+            if (columnas.includes('detalles')) {
+                console.log('🔄 Migrando: eliminando columna detalles');
+                // SQLite no soporta DROP COLUMN directamente, necesitamos recrear la tabla
+                await db.execute(`
+                    CREATE TABLE propiedades_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        titulo TEXT NOT NULL,
+                        categoria TEXT NOT NULL,
+                        precio TEXT NOT NULL,
+                        rating TEXT DEFAULT '5.0',
+                        img TEXT NOT NULL,
+                        galeria TEXT DEFAULT '[]',
+                        ubicacion TEXT NOT NULL,
+                        mapa_embed TEXT DEFAULT '',
+                        descripcion TEXT NOT NULL,
+                        huespedes INTEGER NOT NULL,
+                        dormitorios INTEGER NOT NULL,
+                        banios INTEGER NOT NULL,
+                        amenidades TEXT DEFAULT '[]',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                `);
+
+                await db.execute(`
+                    INSERT INTO propiedades_new
+                    SELECT id, titulo, categoria, precio, rating, img, galeria, ubicacion, mapa_embed, descripcion, huespedes, dormitorios, banios, amenidades, created_at, updated_at
+                    FROM propiedades
+                `);
+
+                await db.execute(`DROP TABLE propiedades`);
+                await db.execute(`ALTER TABLE propiedades_new RENAME TO propiedades`);
+                console.log('✅ Columna detalles eliminada');
             }
         } catch (migrationError) {
             console.log('ℹ️  No se necesita migración (tabla nueva)');
