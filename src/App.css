@@ -431,6 +431,53 @@ header {
     font-size: 16px;
 }
 
+/* Amenidades Section */
+.amenidades-seccion {
+    background: #f9f9f9;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    border-left: 4px solid var(--primary);
+}
+
+.amenidades-seccion h3 {
+    font-size: 18px;
+    margin: 0 0 16px 0;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.amenidades-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.amenidades-lista li {
+    background: white;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 3px solid var(--primary);
+}
+
+.amenidades-lista li::before {
+    content: "✓";
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 16px;
+    min-width: 20px;
+}
+
 .detalles-texto {
     font-size: 16px;
     line-height: 1.6;
