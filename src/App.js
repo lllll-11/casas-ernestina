@@ -78,9 +78,21 @@ function ModalDetalle({ propiedad, onClose }) {
     // Procesar amenidades: array o string separado por comas
     let amenidades = [];
     if (Array.isArray(propiedad.amenidades)) {
-        amenidades = propiedad.amenidades;
+        // Si es array, limpiar comillas y caracteres especiales
+        amenidades = propiedad.amenidades
+            .map(a => {
+                if (typeof a === 'string') {
+                    return a.trim().replace(/["[\]]/g, '');
+                }
+                return a;
+            })
+            .filter(a => a && a.length > 0);
     } else if (typeof propiedad.amenidades === 'string' && propiedad.amenidades) {
-        amenidades = propiedad.amenidades.split(',').map(a => a.trim()).filter(a => a);
+        // Si es string, convertir a array
+        amenidades = propiedad.amenidades
+            .split(',')
+            .map(a => a.trim().replace(/["[\]]/g, ''))
+            .filter(a => a && a.length > 0);
     }
     
     const mapaEmbed = propiedad.mapa_embed || '';

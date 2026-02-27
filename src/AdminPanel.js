@@ -60,11 +60,14 @@ function AdminPanel() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Convertir string de amenidades a array
+            // Convertir string de amenidades a array limpio (sin comillas ni caracteres especiales)
             const amenidadesArray = formData.amenidades
                 .split(',')
-                .map(a => a.trim())
-                .filter(a => a);
+                .map(a => {
+                    // Limpiar comillas, corchetes y espacios en blanco
+                    return a.trim().replace(/["[\]]/g, '').trim();
+                })
+                .filter(a => a && a.length > 0);
 
             const dataToSave = {
                 titulo: formData.titulo,
@@ -107,10 +110,20 @@ function AdminPanel() {
     };
 
     const handleEdit = (propiedad) => {
-        // Convertir array de amenidades a string separado por comas
-        const amenidadesString = Array.isArray(propiedad.amenidades)
-            ? propiedad.amenidades.join(', ')
-            : (propiedad.amenidades || '');
+        // Convertir array de amenidades a string separado por comas, limpiando caracteres especiales
+        let amenidadesString = '';
+        if (Array.isArray(propiedad.amenidades)) {
+            amenidadesString = propiedad.amenidades
+                .map(a => {
+                    if (typeof a === 'string') {
+                        return a.trim().replace(/["[\]]/g, '');
+                    }
+                    return a;
+                })
+                .join(', ');
+        } else if (typeof propiedad.amenidades === 'string') {
+            amenidadesString = propiedad.amenidades.replace(/["[\]]/g, '');
+        }
 
         setFormData({
             titulo: propiedad.titulo,
