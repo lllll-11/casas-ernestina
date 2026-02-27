@@ -3,8 +3,7 @@ import './App.css';
 import HeroCarousel from './components/HeroCarousel';
 import TestimonialsSection from './components/TestimonialsSection';
 import Footer from './components/Footer';
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://casas-api.onrender.com/api';
+import { supabase } from './supabaseClient';
 
 // Componente del Lightbox de Galería
 function Lightbox({ imagenes, indiceInicial, onClose }) {
@@ -75,7 +74,15 @@ function ModalDetalle({ propiedad, onClose }) {
 
     // Validar que la galería existe y es un array
     const galeria = Array.isArray(propiedad.galeria) ? propiedad.galeria : [];
-    const amenidades = Array.isArray(propiedad.amenidades) ? propiedad.amenidades : [];
+    
+    // Procesar amenidades: array o string separado por comas
+    let amenidades = [];
+    if (Array.isArray(propiedad.amenidades)) {
+        amenidades = propiedad.amenidades;
+    } else if (typeof propiedad.amenidades === 'string' && propiedad.amenidades) {
+        amenidades = propiedad.amenidades.split(',').map(a => a.trim()).filter(a => a);
+    }
+    
     const mapaEmbed = propiedad.mapa_embed || '';
 
     return (
@@ -248,18 +255,19 @@ function App() {
     const [propiedades, setPropiedades] = useState([]);
     const categorias = ['Todos', 'Playa', 'Bosque', 'Ciudad'];
 
-    // Cargar propiedades desde la API
+    // Cargar propiedades desde Supabase
     useEffect(() => {
         fetchPropiedades();
-        const interval = setInterval(fetchPropiedades, 5000); // Recargar cada 5 segundos
-        return () => clearInterval(interval);
     }, []);
 
     const fetchPropiedades = async () => {
         try {
-            const response = await fetch(`${API_URL}/propiedades`);
-            const data = await response.json();
-            
+            const { data, error } = await supabase
+                .from('propiedades')
+                .select('*');
+
+            if (error) throw error;
+
             // Parsear galeria y amenidades si vienen como string
             const propiedadesProcesadas = data.map(p => ({
                 ...p,
@@ -270,7 +278,7 @@ function App() {
             }));
             setPropiedades(propiedadesProcesadas);
         } catch (error) {
-            console.error('Error cargando propiedades:', error);
+            console.error('Error cargando propiedades:', error.message);
         }
     };
 
@@ -322,15 +330,16 @@ function App() {
                             onClick={() => setPropiedadSeleccionada(p)}
                         >
                             <div className="img-container">
-                                <img src={p.img} alt={p.titulo} />
+                                <img src={p.img} alt={p.titulo} loading="lazy" />
                                 <div className="badge">★ {p.rating}</div>
                             </div>
                             <div className="card-info">
-                                <div className="card-header">
-                                    <h3>{p.ubicacion}</h3>
+                                <h3 className="card-title">{p.titulo}</h3>
+                                <div className="card-location">
+                                    <i className="fas fa-map-pin"></i>
+                                    <span>{p.ubicacion}</span>
                                 </div>
-                                <p className="desc">{p.titulo}</p>
-                                <p className="precio">Precio por noche</p>
+                                <div className="card-price-label">Precio por noche</div>
                             </div>
                         </div>
                     ))}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AdminPanel.css';
+import { supabase } from './supabaseClient';
 
 function AdminPanel() {
     const [propiedades, setPropiedades] = useState([]);
@@ -9,8 +10,7 @@ function AdminPanel() {
     const [formData, setFormData] = useState({
         titulo: '',
         categoria: 'Playa',
-        precio: '',
-        rating: '5.0',
+        rating: 5.0,
         img: '',
         galeria: [],
         ubicacion: '',
@@ -19,12 +19,10 @@ function AdminPanel() {
         huespedes: 1,
         dormitorios: 1,
         banios: 1,
-        amenidades: []
+        amenidades: ''
     });
 
-    const API_URL = 'https://casas-api.onrender.com/api';
-
-    // Cargar propiedades
+    // Cargar propiedades desde Supabase
     useEffect(() => {
         fetchPropiedades();
     }, []);
@@ -32,9 +30,12 @@ function AdminPanel() {
     const fetchPropiedades = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_URL}/propiedades`);
-            const data = await response.json();
-            setPropiedades(data);
+            const { data, error } = await supabase
+                .from('propiedades')
+                .select('*');
+            
+            if (error) throw error;
+            setPropiedades(data || []);
         } catch (error) {
             console.error('Error cargando propiedades:', error);
             alert('Error al cargar propiedades');
@@ -46,9 +47,9 @@ function AdminPanel() {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         if (['huespedes', 'dormitorios', 'banios'].includes(name)) {
-            setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
-        } else if (name === 'amenidades') {
-            setFormData(prev => ({ ...prev, [name]: value.split(',').map(a => a.trim()).filter(a => a) }));
+            setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+        } else if (name === 'rating') {
+            setFormData(prev => ({ ...prev, [name]: parseFloat(value) }));
         } else if (name === 'galeria') {
             setFormData(prev => ({ ...prev, [name]: value.split('\n').map(a => a.trim()).filter(a => a) }));
         } else {
@@ -59,28 +60,72 @@ function AdminPanel() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const method = editingId ? 'PUT' : 'POST';
-            const url = editingId ? `${API_URL}/propiedades/${editingId}` : `${API_URL}/propiedades`;
+            // Convertir string de amenidades a array
+            const amenidadesArray = formData.amenidades
+                .split(',')
+                .map(a => a.trim())
+                .filter(a => a);
 
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+            const dataToSave = {
+                titulo: formData.titulo,
+                categoria: formData.categoria,
+                rating: parseFloat(formData.rating),
+                img: formData.img,
+                galeria: formData.galeria,
+                ubicacion: formData.ubicacion,
+                mapa_embed: formData.mapa_embed,
+                descripcion: formData.descripcion,
+                huespedes: parseInt(formData.huespedes, 10),
+                dormitorios: parseInt(formData.dormitorios, 10),
+                banios: parseInt(formData.banios, 10),
+                amenidades: amenidadesArray
+            };
 
-            if (!response.ok) throw new Error('Error al guardar');
+            if (editingId) {
+                const { error } = await supabase
+                    .from('propiedades')
+                    .update(dataToSave)
+                    .eq('id', editingId);
+                
+                if (error) throw error;
+                alert('Propiedad actualizada');
+            } else {
+                const { error } = await supabase
+                    .from('propiedades')
+                    .insert([dataToSave]);
+                
+                if (error) throw error;
+                alert('Propiedad creada');
+            }
 
-            alert(editingId ? 'Propiedad actualizada' : 'Propiedad creada');
             resetForm();
             fetchPropiedades();
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al guardar propiedad');
+            alert('Error al guardar propiedad: ' + error.message);
         }
     };
 
     const handleEdit = (propiedad) => {
-        setFormData(propiedad);
+        // Convertir array de amenidades a string separado por comas
+        const amenidadesString = Array.isArray(propiedad.amenidades)
+            ? propiedad.amenidades.join(', ')
+            : (propiedad.amenidades || '');
+
+        setFormData({
+            titulo: propiedad.titulo,
+            categoria: propiedad.categoria,
+            rating: propiedad.rating,
+            img: propiedad.img,
+            galeria: propiedad.galeria || [],
+            ubicacion: propiedad.ubicacion,
+            mapa_embed: propiedad.mapa_embed,
+            descripcion: propiedad.descripcion,
+            huespedes: propiedad.huespedes,
+            dormitorios: propiedad.dormitorios,
+            banios: propiedad.banios,
+            amenidades: amenidadesString
+        });
         setEditingId(propiedad.id);
         setShowForm(true);
     };
@@ -89,11 +134,12 @@ function AdminPanel() {
         if (!window.confirm('¿Eliminar esta propiedad?')) return;
 
         try {
-            const response = await fetch(`${API_URL}/propiedades/${id}`, {
-                method: 'DELETE'
-            });
+            const { error } = await supabase
+                .from('propiedades')
+                .delete()
+                .eq('id', id);
 
-            if (!response.ok) throw new Error('Error al eliminar');
+            if (error) throw error;
 
             alert('Propiedad eliminada');
             fetchPropiedades();
@@ -107,8 +153,7 @@ function AdminPanel() {
         setFormData({
             titulo: '',
             categoria: 'Playa',
-            precio: '',
-            rating: '5.0',
+            rating: 5.0,
             img: '',
             galeria: [],
             ubicacion: '',
@@ -117,7 +162,7 @@ function AdminPanel() {
             huespedes: 1,
             dormitorios: 1,
             banios: 1,
-            amenidades: []
+            amenidades: ''
         });
         setEditingId(null);
         setShowForm(false);
@@ -160,14 +205,6 @@ function AdminPanel() {
                         </div>
 
                         <div className="form-row">
-                            <input
-                                type="text"
-                                name="precio"
-                                placeholder="Precio (ej: 2,500)"
-                                value={formData.precio}
-                                onChange={handleInputChange}
-                                required
-                            />
                             <input
                                 type="number"
                                 name="rating"
@@ -244,7 +281,7 @@ function AdminPanel() {
                         <textarea
                             name="amenidades"
                             placeholder="Amenidades (separadas por coma)"
-                            value={formData.amenidades.join(', ')}
+                            value={formData.amenidades}
                             onChange={handleInputChange}
                             rows="2"
                         ></textarea>
@@ -276,7 +313,7 @@ function AdminPanel() {
                                     <div className="card-content">
                                         <h3>{prop.titulo}</h3>
                                         <p className="ubicacion">{prop.ubicacion}</p>
-                                        <p className="precio">${prop.precio}</p>
+                                        <p className="rating">⭐ {prop.rating}</p>
                                         <div className="card-info">
                                             <span>👥 {prop.huespedes}</span>
                                             <span>🛏️ {prop.dormitorios}</span>

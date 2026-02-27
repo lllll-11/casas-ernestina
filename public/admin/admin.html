@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Administrativo - Casas Maria Ernestina</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -756,34 +757,87 @@
     <div class="alerts-container" id="alerts"></div>
 
     <script>
-        // Detectar automáticamente el API_URL basado en el ambiente
-        const env = window.location.hostname;
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        // ==================== CONFIGURACIÓN ====================
+        // Detectar la URL base del servidor
+        const SERVER_URL = window.location.hostname === 'localhost' 
+            ? `http://localhost:5000`
+            : window.location.origin;
+        let supabaseClient;
         
-        let API_URL;
-        if (isLocal) {
-            API_URL = 'http://localhost:5000/api';
-        } else {
-            API_URL = 'https://casas-api.onrender.com/api';
+        async function initSupabase() {
+            const SUPABASE_URL = 'https://xteghqnlmokceemoameg.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_1IovWGPE0wG1AgMEWCX3Jw_fUc89xSD';
+            
+            // Reintentar si Supabase no se cargó en el CDN
+            let attempts = 0;
+            const maxAttempts = 30; // 3 segundos máximo (0.1s * 30)
+            
+            while (!window.supabase && attempts < maxAttempts) {
+                console.log(`⏳ Esperando Supabase... (intento ${attempts + 1}/${maxAttempts})`);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (!window.supabase) {
+                console.error('❌ Supabase no se cargó del CDN');
+                return false;
+            }
+            
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase inicializado correctamente');
+                
+                // Verificar que la conexión funciona
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (error) {
+                    console.warn('⚠️ Advertencia de auth:', error.message);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Error al crear cliente Supabase:', error);
+                return false;
+            }
         }
-        
+
         let estadoFormulario = {
             galeria: [],
             propiedadId: null
         };
 
-        console.log('🎯 Admin Panel iniciado. Ambiente:', isLocal ? 'LOCAL' : 'PRODUCCIÓN', '| API:', API_URL);
-        document.addEventListener('DOMContentLoaded', recargarPropiedades);
+        // Inicializar cuando el documento esté listo
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const supabaseReady = await initSupabase();
+                if (supabaseReady) {
+                    console.log('🎯 Admin Panel inicializado. Backend: Supabase');
+                    await recargarPropiedades();
+                } else {
+                    console.error('❌ No se pudo inicializar Supabase');
+                    mostrarAlerta('Error: Supabase no se cargó. Recarga la página.', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error en inicialización:', error);
+                mostrarAlerta('Error al conectar: ' + error.message, 'error');
+            }
+        });
 
         // ==================== CARGA DE PROPIEDADES ====================
         async function recargarPropiedades() {
             try {
-                const response = await fetch(`${API_URL}/propiedades`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const propiedades = await response.json();
-                mostrarPropiedades(propiedades);
+                if (!supabaseClient) {
+                    throw new Error('Supabase no está inicializado');
+                }
+                
+                const { data: propiedades, error } = await supabaseClient
+                    .from('propiedades')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw new Error(error.message);
+                mostrarPropiedades(propiedades || []);
             } catch (error) {
-                console.error('❌ Error:', error);
+                console.error('❌ Error al cargar propiedades:', error);
                 mostrarAlerta('Error al cargar propiedades: ' + error.message, 'error');
             }
         }
@@ -817,10 +871,10 @@
                                 <span>🚿 ${prop.banios}</span>
                             </div>
                             <div class="property-actions">
-                                <button class="btn btn-edit" onclick="editarPropiedad(${prop.id})">
+                                <button class="btn btn-edit" onclick="editarPropiedad('${prop.id}')">
                                     ✏️ Editar
                                 </button>
-                                <button class="btn btn-danger" onclick="eliminarPropiedad(${prop.id})">
+                                <button class="btn btn-danger" onclick="eliminarPropiedad('${prop.id}')">
                                     🗑️ Eliminar
                                 </button>
                             </div>
@@ -848,8 +902,17 @@
 
         async function editarPropiedad(id) {
             try {
-                const response = await fetch(`${API_URL}/propiedades/${id}`);
-                const prop = await response.json();
+                if (!supabaseClient) {
+                    throw new Error('Supabase no está inicializado');
+                }
+                
+                const { data: prop, error } = await supabaseClient
+                    .from('propiedades')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw new Error(error.message);
 
                 document.getElementById('propiedadId').value = prop.id;
                 document.getElementById('formTitle').textContent = 'Editar Propiedad';
@@ -887,7 +950,7 @@
                 document.getElementById('formModal').classList.add('active');
             } catch (error) {
                 console.error('Error:', error);
-                mostrarAlerta('Error al cargar propiedad', 'error');
+                mostrarAlerta('Error al cargar propiedad: ' + error.message, 'error');
             }
         }
 
@@ -897,15 +960,52 @@
 
         dropzone.addEventListener('click', () => galeriaFile.click());
 
-        galeriaFile.addEventListener('change', (e) => {
-            for (let file of e.target.files) {
+        galeriaFile.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            
+            // Mostrar preview local mientras se suben
+            for (let file of files) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    estadoFormulario.galeria.push(event.target.result);
+                    const tempId = 'temp-' + Math.random();
+                    // Guardar con ID temporal para poder mostrar preview
+                    estadoFormulario.galeria.push({
+                        url: event.target.result,
+                        tempId: tempId,
+                        isUploading: true
+                    });
                     mostrarGaleria();
                 };
                 reader.readAsDataURL(file);
             }
+
+            // Subir a Cloudinary en background (sin bloquear UI)
+            const formData = new FormData();
+            files.forEach(file => formData.append('files', file));
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/upload-multiple`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Error al subir imágenes');
+                
+                const { urls } = await response.json();
+                
+                // Reemplazar URLs locales por URLs de Cloudinary
+                urls.forEach((url, idx) => {
+                    if (idx < estadoFormulario.galeria.length) {
+                        estadoFormulario.galeria[idx] = url;
+                    }
+                });
+                mostrarGaleria();
+            } catch (error) {
+                console.error('Error al subir a Cloudinary:', error);
+                mostrarAlerta('Error al subir imágenes a Cloudinary: ' + error.message, 'error');
+                // Mantener las data URLs como fallback para poder guardar
+            }
+            
             galeriaFile.value = '';
         });
 
@@ -932,11 +1032,17 @@
             const container = document.getElementById('galeriaPreview');
             container.innerHTML = '';
 
-            estadoFormulario.galeria.forEach((img, idx) => {
+            estadoFormulario.galeria.forEach((item, idx) => {
                 const div = document.createElement('div');
                 div.className = 'gallery-item gallery-item-new';
+                
+                // Manejar tanto URLs como objetos con datos de carga
+                const imgUrl = typeof item === 'string' ? item : item.url;
+                const isUploading = typeof item === 'object' && item.isUploading;
+                
                 div.innerHTML = `
-                    <img src="${img}" alt="Imagen ${idx + 1}">
+                    <img src="${imgUrl}" alt="Imagen ${idx + 1}" ${isUploading ? 'style="opacity: 0.5;"' : ''}>
+                    ${isUploading ? '<span class="upload-indicator">Subiendo...</span>' : ''}
                     <button type="button" class="gallery-remove" onclick="eliminarGaleria(${idx})" title="Eliminar">
                         ×
                     </button>
@@ -975,97 +1081,79 @@
             const imgFile = document.getElementById('img').files[0];
 
             try {
+                if (!supabaseClient) {
+                    throw new Error('Supabase no está inicializado. Recarga la página.');
+                }
+                
                 let imgUrl = '';
                 let galeriaUrls = [];
 
-                // Subir imagen principal
+                // Procesar imagen principal
                 if (imgFile) {
-                    const formData = new FormData();
-                    formData.append('file', imgFile);
-                    
-                    try {
-                        const controller = new AbortController();
-                        const timeout = setTimeout(() => controller.abort(), 60000); // 60 segundos timeout
-                        
-                        const response = await fetch(`${API_URL}/upload`, {
-                            method: 'POST',
-                            body: formData,
-                            signal: controller.signal
-                        });
-                        
-                        clearTimeout(timeout);
-                        
-                        if (!response.ok) {
-                            const errorData = await response.json().catch(() => ({}));
-                            throw new Error(`Error ${response.status}: ${errorData.message || 'Error al subir imagen'}`);
-                        }
-                        const data = await response.json();
-                        imgUrl = data.url;
-                        console.log('✅ Imagen principal subida:', imgUrl);
-                    } catch (fetchError) {
-                        if (fetchError.name === 'AbortError') {
-                            throw new Error('Tiempo de espera agotado. Intenta con una imagen más pequeña o verifica tu conexión.');
-                        }
-                        console.error('❌ Error de carga:', fetchError);
-                        throw new Error('Error de conexión al servidor. Verifica que el servidor esté ejecutándose en ' + API_URL);
-                    }
+                    // Convertir archivo a Data URL (base64)
+                    imgUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(imgFile);
+                    });
+                    console.log('✅ Imagen principal convertida a Data URL');
                 } else if (id) {
-                    const propResponse = await fetch(`${API_URL}/propiedades/${id}`);
-                    const prop = await propResponse.json();
-                    imgUrl = prop.img;
+                    // Si está editando y no cambió la imagen, mantener la existente
+                    const { data: prop } = await supabaseClient
+                        .from('propiedades')
+                        .select('img')
+                        .eq('id', id)
+                        .single();
+                    imgUrl = prop?.img || '';
                 } else {
                     throw new Error('Imagen principal requerida');
                 }
 
-                // Subir galería
-                const nuevasGalerias = estadoFormulario.galeria.filter(g => g.startsWith('data:'));
-                galeriaUrls = estadoFormulario.galeria.filter(g => !g.startsWith('data:'));
+                // Procesar galería: filtrar solo URLs válidas (descartar objetos de carga)
+                galeriaUrls = estadoFormulario.galeria
+                    .map(item => typeof item === 'string' ? item : item.url)
+                    .filter(url => url && (url.startsWith('http') || url.startsWith('data:')));
 
-                if (nuevasGalerias.length > 0) {
-                    // Convertir Data URLs a archivos y subir
-                    const formData = new FormData();
-                    for (let dataUrl of nuevasGalerias) {
-                        const blob = await fetch(dataUrl).then(r => r.blob());
-                        formData.append('files', blob, 'image.jpg');
-                    }
-                    const response = await fetch(`${API_URL}/upload-multiple`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!response.ok) throw new Error('Error al subir galería');
-                    const data = await response.json();
-                    galeriaUrls = galeriaUrls.concat(data.urls);
-                }
-
-                const data = {
+                // Preparar datos para insertar/actualizar
+                const datosPropiedad = {
                     titulo: document.getElementById('titulo').value,
                     categoria: document.getElementById('categoria').value,
                     precio: document.getElementById('precio').value,
-                    rating: document.getElementById('rating').value,
+                    rating: parseFloat(document.getElementById('rating').value),
                     img: imgUrl,
                     galeria: galeriaUrls,
                     ubicacion: document.getElementById('ubicacion').value,
                     mapa_embed: document.getElementById('mapa_embed').value,
                     descripcion: document.getElementById('descripcion').value,
-                    huespedes: parseInt(document.getElementById('huespedes').value),
-                    dormitorios: parseInt(document.getElementById('dormitorios').value),
-                    banios: parseInt(document.getElementById('banios').value),
+                    huespedes: parseInt(document.getElementById('huespedes').value, 10),
+                    dormitorios: parseInt(document.getElementById('dormitorios').value, 10),
+                    banios: parseInt(document.getElementById('banios').value, 10),
                     amenidades: document.getElementById('amenidades').value
                         .split(',')
                         .map(a => a.trim())
                         .filter(a => a)
                 };
 
-                const method = id ? 'PUT' : 'POST';
-                const url = id ? `${API_URL}/propiedades/${id}` : `${API_URL}/propiedades`;
+                let error;
+                if (id) {
+                    // Actualizar propiedad existente
+                    const result = await supabaseClient
+                        .from('propiedades')
+                        .update(datosPropiedad)
+                        .eq('id', id);
+                    error = result.error;
+                    if (!error) console.log('✅ Propiedad actualizada en Supabase');
+                } else {
+                    // Crear nueva propiedad
+                    const result = await supabaseClient
+                        .from('propiedades')
+                        .insert([datosPropiedad]);
+                    error = result.error;
+                    if (!error) console.log('✅ Nueva propiedad creada en Supabase');
+                }
 
-                const response = await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) throw new Error('Error al guardar');
+                if (error) throw new Error(error.message);
 
                 cerrarFormulario();
                 const mensaje = id
@@ -1085,17 +1173,22 @@
             if (!confirm('¿Eliminar esta propiedad permanentemente?')) return;
 
             try {
-                const response = await fetch(`${API_URL}/propiedades/${id}`, {
-                    method: 'DELETE'
-                });
+                if (!supabaseClient) {
+                    throw new Error('Supabase no está inicializado');
+                }
+                
+                const { error } = await supabaseClient
+                    .from('propiedades')
+                    .delete()
+                    .eq('id', id);
 
-                if (!response.ok) throw new Error('Error al eliminar');
+                if (error) throw new Error(error.message);
 
                 mostrarAlerta('✓ Propiedad eliminada correctamente', 'success');
                 await recargarPropiedades();
             } catch (error) {
                 console.error('Error:', error);
-                mostrarAlerta('Error al eliminar', 'error');
+                mostrarAlerta('Error al eliminar: ' + error.message, 'error');
             }
         }
 

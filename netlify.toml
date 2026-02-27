@@ -1,17 +1,57 @@
+# ==================== CONFIGURACIÓN DE NETLIFY ====================
+
+# Comando de build y carpeta de publicación
 [build]
   command = "npm run build"
   publish = "build"
+  environment = { CI = "false" }
 
-# Redirigir rutas React (excepto /admin)
+# ==================== REDIRECCIONES ====================
+
+# Servir admin.html para la ruta /admin
 [[redirects]]
-  from = "/admin/*"
-  to = "/admin/index.html"
+  from = "/admin"
+  to = "/admin/admin.html"
   status = 200
 
+[[redirects]]
+  from = "/admin/"
+  to = "/admin/admin.html"
+  status = 200
+
+# ==================== REACT ROUTER SPA ====================
+# Redirigir todas las rutas no encontradas a index.html para que React Router maneje
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-[env]
-  REACT_APP_API_URL = "https://tu-backend.herokuapp.com/api"
+# ==================== HEADERS DE SEGURIDAD ====================
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Headers para caché en archivos estáticos (build/static)
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para archivos HTML (sin caché para permitir updates)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# ==================== FUNCIONES (si se usan en futuro) ====================
+[functions]
+  directory = "functions"

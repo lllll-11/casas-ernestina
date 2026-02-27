@@ -10,6 +10,22 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ==================== FUNCIONES HELPER ====================
+/**
+ * Parse JSON de forma segura
+ * @param {string} jsonString - String a parsear
+ * @param {any} defaultValue - Valor por defecto si falla el parse
+ * @returns {any} Objeto parseado o defaultValue
+ */
+function safeJSONParse(jsonString, defaultValue = []) {
+    try {
+        return JSON.parse(jsonString || JSON.stringify(defaultValue));
+    } catch (error) {
+        console.warn('⚠️  JSON inválido:', jsonString, 'usando default:', defaultValue);
+        return defaultValue;
+    }
+}
+
 // Configurar Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -169,14 +185,14 @@ app.get('/api/propiedades', async (req, res) => {
             precio: row.precio,
             rating: row.rating,
             img: row.img,
-            galeria: JSON.parse(row.galeria || '[]'),
+            galeria: safeJSONParse(row.galeria, []),
             ubicacion: row.ubicacion,
             mapa_embed: row.mapa_embed || '',
             descripcion: row.descripcion,
             huespedes: row.huespedes,
             dormitorios: row.dormitorios,
             banios: row.banios,
-            amenidades: JSON.parse(row.amenidades || '[]'),
+            amenidades: safeJSONParse(row.amenidades, []),
         }));
         res.json(propiedades);
     } catch (error) {
@@ -200,14 +216,14 @@ app.get('/api/propiedades/:id', async (req, res) => {
             precio: row.precio,
             rating: row.rating,
             img: row.img,
-            galeria: JSON.parse(row.galeria || '[]'),
+            galeria: safeJSONParse(row.galeria, []),
             ubicacion: row.ubicacion,
             mapa_embed: row.mapa_embed || '',
             descripcion: row.descripcion,
             huespedes: row.huespedes,
             dormitorios: row.dormitorios,
             banios: row.banios,
-            amenidades: JSON.parse(row.amenidades || '[]'),
+            amenidades: safeJSONParse(row.amenidades, []),
         };
         res.json(propiedad);
     } catch (error) {
@@ -238,13 +254,83 @@ app.post('/api/propiedades', async (req, res) => {
             amenidades: !!amenidades
         });
 
-        // Validaciones
+        // ==================== VALIDACIONES ====================
+        // Validación de campos requeridos
         if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
-            console.error('❌ Validación fallida:', { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion });
+            console.error('❌ Validación fallida: faltan campos requeridos');
             return res.status(400).json({
                 error: 'Faltan campos requeridos',
                 recibidos: { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion }
             });
+        }
+
+        // Validación de longitudes de strings
+        if (typeof titulo !== 'string' || titulo.trim().length === 0 || titulo.length > 200) {
+            return res.status(400).json({ error: 'Título debe tener 1-200 caracteres' });
+        }
+
+        if (!['Playa', 'Bosque', 'Ciudad'].includes(categoria)) {
+            return res.status(400).json({ error: 'Categoría inválida. Debe ser: Playa, Bosque o Ciudad' });
+        }
+
+        if (typeof descripcion !== 'string' || descripcion.trim().length === 0 || descripcion.length > 5000) {
+            return res.status(400).json({ error: 'Descripción debe tener 1-5000 caracteres' });
+        }
+
+        if (typeof precio !== 'string' || precio.trim().length === 0) {
+            return res.status(400).json({ error: 'Precio no puede estar vacío' });
+        }
+
+        if (typeof ubicacion !== 'string' || ubicacion.trim().length === 0) {
+            return res.status(400).json({ error: 'Ubicación no puede estar vacía' });
+        }
+
+        // Validación de números
+        const ratingNum = parseFloat(rating) || 5.0;
+        if (isNaN(ratingNum) || ratingNum < 0 || ratingNum > 5) {
+            return res.status(400).json({ error: 'Rating debe estar entre 0 y 5' });
+        }
+
+        const huespedesNum = parseInt(huespedes, 10);
+        if (!Number.isInteger(huespedesNum) || huespedesNum < 1 || huespedesNum > 10000) {
+            return res.status(400).json({ error: 'Huéspedes debe ser un número entre 1 y 10000' });
+        }
+
+        const dormitoriosNum = parseInt(dormitorios, 10);
+        if (!Number.isInteger(dormitoriosNum) || dormitoriosNum < 0 || dormitoriosNum > 500) {
+            return res.status(400).json({ error: 'Dormitorios debe ser un número entre 0 y 500' });
+        }
+
+        const baniosNum = parseInt(banios, 10);
+        if (!Number.isInteger(baniosNum) || baniosNum < 0 || baniosNum > 500) {
+            return res.status(400).json({ error: 'Baños debe ser un número entre 0 y 500' });
+        }
+
+        // Validación de arrays
+        if (galeria && !Array.isArray(galeria)) {
+            return res.status(400).json({ error: 'Galería debe ser un array' });
+        }
+
+        if (galeria && galeria.length > 100) {
+            return res.status(400).json({ error: 'Máximo 100 imágenes en galería' });
+        }
+
+        // Validar URLs de galería
+        const galeriaValidada = (galeria || []).filter(url => {
+            try {
+                if (typeof url !== 'string') return false;
+                new URL(url); // Valida que sea URL válida
+                return url.startsWith('https://') || url.startsWith('data:image');
+            } catch {
+                return false;
+            }
+        });
+
+        if (amenidades) {
+            const amenidadesArray = Array.isArray(amenidades) ? amenidades : [];
+            if (amenidadesArray.length > 50) {
+                return res.status(400).json({ error: 'Máximo 50 amenidades' });
+            }
         }
 
         if (!mapa_embed) {
@@ -260,10 +346,10 @@ app.post('/api/propiedades', async (req, res) => {
                 dormitorios, banios, amenidades
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                titulo, categoria, precio, rating || '5.0', img,
-                JSON.stringify(galeria || []),
+                titulo, categoria, precio, ratingNum, img,
+                JSON.stringify(galeriaValidada),
                 ubicacion, mapa_embed || '',
-                descripcion, huespedes, dormitorios, banios,
+                descripcion, huespedesNum, dormitoriosNum, baniosNum,
                 JSON.stringify(amenidades || [])
             ]
         );
@@ -286,9 +372,72 @@ app.put('/api/propiedades/:id', async (req, res) => {
 
         console.log('✏️  Actualizando propiedad ID:', req.params.id);
 
-        // Validaciones
+        // ==================== VALIDACIONES ====================
         if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
             return res.status(400).json({ error: 'Faltan campos requeridos' });
+        }
+
+        // Validación de longitudes de strings
+        if (typeof titulo !== 'string' || titulo.trim().length === 0 || titulo.length > 200) {
+            return res.status(400).json({ error: 'Título debe tener 1-200 caracteres' });
+        }
+
+        if (!['Playa', 'Bosque', 'Ciudad'].includes(categoria)) {
+            return res.status(400).json({ error: 'Categoría inválida. Debe ser: Playa, Bosque o Ciudad' });
+        }
+
+        if (typeof descripcion !== 'string' || descripcion.trim().length === 0 || descripcion.length > 5000) {
+            return res.status(400).json({ error: 'Descripción debe tener 1-5000 caracteres' });
+        }
+
+        // Validación de números
+        const ratingNum = parseFloat(rating) || 5.0;
+        if (isNaN(ratingNum) || ratingNum < 0 || ratingNum > 5) {
+            return res.status(400).json({ error: 'Rating debe estar entre 0 y 5' });
+        }
+
+        const huespedesNum = parseInt(huespedes, 10);
+        if (!Number.isInteger(huespedesNum) || huespedesNum < 1 || huespedesNum > 10000) {
+            return res.status(400).json({ error: 'Huéspedes debe ser un número entre 1 y 10000' });
+        }
+
+        const dormitoriosNum = parseInt(dormitorios, 10);
+        if (!Number.isInteger(dormitoriosNum) || dormitoriosNum < 0 || dormitoriosNum > 500) {
+            return res.status(400).json({ error: 'Dormitorios debe ser un número entre 0 y 500' });
+        }
+
+        const baniosNum = parseInt(banios, 10);
+        if (!Number.isInteger(baniosNum) || baniosNum < 0 || baniosNum > 500) {
+            return res.status(400).json({ error: 'Baños debe ser un número entre 0 y 500' });
+        }
+
+        // Validación de arrays
+        if (galeria && !Array.isArray(galeria)) {
+            return res.status(400).json({ error: 'Galería debe ser un array' });
+        }
+
+        if (galeria && galeria.length > 100) {
+            return res.status(400).json({ error: 'Máximo 100 imágenes en galería' });
+        }
+
+        // Validar URLs de galería
+        const galeriaValidada = (galeria || []).filter(url => {
+            try {
+                if (typeof url !== 'string') return false;
+                new URL(url);
+                return url.startsWith('https://') || url.startsWith('data:image');
+            } catch {
+                return false;
+            }
+        });
+
+        if (amenidades && Array.isArray(amenidades) && amenidades.length > 50) {
+            return res.status(400).json({ error: 'Máximo 50 amenidades' });
+        }
+
+        const id = parseInt(req.params.id, 10);
+        if (!Number.isInteger(id) || id < 1) {
+            return res.status(400).json({ error: 'ID de propiedad inválido' });
         }
 
         await db.execute(
@@ -299,12 +448,12 @@ app.put('/api/propiedades/:id', async (req, res) => {
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?`,
             [
-                titulo, categoria, precio, rating || '5.0', img,
-                JSON.stringify(galeria || []),
+                titulo, categoria, precio, ratingNum, img,
+                JSON.stringify(galeriaValidada),
                 ubicacion, mapa_embed || '',
-                descripcion, huespedes, dormitorios, banios,
+                descripcion, huespedesNum, dormitoriosNum, baniosNum,
                 JSON.stringify(amenidades || []),
-                req.params.id
+                id
             ]
         );
 

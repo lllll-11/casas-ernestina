@@ -897,15 +897,52 @@
 
         dropzone.addEventListener('click', () => galeriaFile.click());
 
-        galeriaFile.addEventListener('change', (e) => {
-            for (let file of e.target.files) {
+        galeriaFile.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            
+            // Mostrar preview local mientras se suben
+            for (let file of files) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    estadoFormulario.galeria.push(event.target.result);
+                    const tempId = 'temp-' + Math.random();
+                    // Guardar con ID temporal para poder mostrar preview
+                    estadoFormulario.galeria.push({
+                        url: event.target.result,
+                        tempId: tempId,
+                        isUploading: true
+                    });
                     mostrarGaleria();
                 };
                 reader.readAsDataURL(file);
             }
+
+            // Subir a Cloudinary en background (sin bloquear UI)
+            const formData = new FormData();
+            files.forEach(file => formData.append('files', file));
+            
+            try {
+                const response = await fetch(`${API_URL}/upload-multiple`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Error al subir imágenes');
+                
+                const { urls } = await response.json();
+                
+                // Reemplazar URLs locales por URLs de Cloudinary
+                urls.forEach((url, idx) => {
+                    if (idx < estadoFormulario.galeria.length) {
+                        estadoFormulario.galeria[idx] = url;
+                    }
+                });
+                mostrarGaleria();
+            } catch (error) {
+                console.error('Error al subir a Cloudinary:', error);
+                mostrarAlerta('Error al subir imágenes a Cloudinary: ' + error.message, 'error');
+                // Mantener las data URLs como fallback para poder guardar
+            }
+            
             galeriaFile.value = '';
         });
 
@@ -932,11 +969,17 @@
             const container = document.getElementById('galeriaPreview');
             container.innerHTML = '';
 
-            estadoFormulario.galeria.forEach((img, idx) => {
+            estadoFormulario.galeria.forEach((item, idx) => {
                 const div = document.createElement('div');
                 div.className = 'gallery-item gallery-item-new';
+                
+                // Manejar tanto URLs como objetos con datos de carga
+                const imgUrl = typeof item === 'string' ? item : item.url;
+                const isUploading = typeof item === 'object' && item.isUploading;
+                
                 div.innerHTML = `
-                    <img src="${img}" alt="Imagen ${idx + 1}">
+                    <img src="${imgUrl}" alt="Imagen ${idx + 1}" ${isUploading ? 'style="opacity: 0.5;"' : ''}>
+                    ${isUploading ? '<span class="upload-indicator">Subiendo...</span>' : ''}
                     <button type="button" class="gallery-remove" onclick="eliminarGaleria(${idx})" title="Eliminar">
                         ×
                     </button>
@@ -1017,25 +1060,11 @@
                     throw new Error('Imagen principal requerida');
                 }
 
-                // Subir galería
-                const nuevasGalerias = estadoFormulario.galeria.filter(g => g.startsWith('data:'));
-                galeriaUrls = estadoFormulario.galeria.filter(g => !g.startsWith('data:'));
-
-                if (nuevasGalerias.length > 0) {
-                    // Convertir Data URLs a archivos y subir
-                    const formData = new FormData();
-                    for (let dataUrl of nuevasGalerias) {
-                        const blob = await fetch(dataUrl).then(r => r.blob());
-                        formData.append('files', blob, 'image.jpg');
-                    }
-                    const response = await fetch(`${API_URL}/upload-multiple`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!response.ok) throw new Error('Error al subir galería');
-                    const data = await response.json();
-                    galeriaUrls = galeriaUrls.concat(data.urls);
-                }
+                // Procesar galería: filtrar solo URLs válidas (Cloudinary)
+                // Las imágenes ya fueron subidas a Cloudinary en background
+                galeriaUrls = estadoFormulario.galeria
+                    .map(item => typeof item === 'string' ? item : item.url)
+                    .filter(url => url && (url.startsWith('http') || url.startsWith('https')));
 
                 const data = {
                     titulo: document.getElementById('titulo').value,
@@ -1047,9 +1076,9 @@
                     ubicacion: document.getElementById('ubicacion').value,
                     mapa_embed: document.getElementById('mapa_embed').value,
                     descripcion: document.getElementById('descripcion').value,
-                    huespedes: parseInt(document.getElementById('huespedes').value),
-                    dormitorios: parseInt(document.getElementById('dormitorios').value),
-                    banios: parseInt(document.getElementById('banios').value),
+                    huespedes: parseInt(document.getElementById('huespedes').value, 10),
+                    dormitorios: parseInt(document.getElementById('dormitorios').value, 10),
+                    banios: parseInt(document.getElementById('banios').value, 10),
                     amenidades: document.getElementById('amenidades').value
                         .split(',')
                         .map(a => a.trim())

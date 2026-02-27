@@ -47,7 +47,7 @@ function Footer() {
                 <div className="footer-divider"></div>
 
                 <div className="footer-bottom">
-                    <p>&copy; 2024 Casas Maria Ernestina. Todos los derechos reservados.</p>
+                    <p>&copy; 2026 Casas Maria Ernestina. Todos los derechos reservados.</p>
                     <p className="footer-tagline">Experiencias únicas en lugares privilegiados</p>
                 </div>
             </div>

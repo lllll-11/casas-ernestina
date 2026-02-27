@@ -279,12 +279,7 @@ header {
     animation: fadeIn 0.6s ease-out;
 }
 
-.card:nth-child(1) { animation-delay: 0.05s; }
-.card:nth-child(2) { animation-delay: 0.1s; }
-.card:nth-child(3) { animation-delay: 0.15s; }
-.card:nth-child(4) { animation-delay: 0.2s; }
-.card:nth-child(5) { animation-delay: 0.25s; }
-.card:nth-child(n+6) { animation-delay: 0.3s; }
+/* Efecto escalón REMOVIDO - Tarjetas alineadas normalmente */
 
 @media (min-width: 480px) {
     .grid {
@@ -360,21 +355,45 @@ header {
 
 .card-info {
     padding: 10px 10px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.card-info h3 {
+.card-title {
     font-size: 14px;
-    margin: 8px 0 4px 0;
+    margin: 0;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gray);
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.card-location i {
+    color: var(--primary);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.card-price-label {
+    margin-top: 2px;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.3;
-    color: var(--text);
-}
-
-.desc {
-    color: var(--gray);
-    font-size: 13px;
-    margin: 4px 0;
-    line-height: 1.4;
+    color: var(--primary);
 }
 
 .precio {
@@ -392,6 +411,28 @@ header {
     .card-info h3 {
         font-size: 16px;
         margin: 8px 0 4px 0;
+    }
+
+    .card-title {
+        font-size: 15px;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .card-location {
+        font-size: 13px;
+        margin: 0;
+        gap: 6px;
+    }
+
+    .card-price-label {
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .card-price {
+        font-size: 13px;
+        margin-top: 8px;
     }
 
     .desc {
@@ -421,6 +462,28 @@ header {
     .card-info h3 {
         font-size: 18px;
         margin: 14px 0 4px 0;
+    }
+
+    .card-title {
+        font-size: 16px;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .card-location {
+        font-size: 13px;
+        margin: 0;
+        gap: 6px;
+    }
+
+    .card-price-label {
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .card-price {
+        font-size: 13px;
+        margin-top: 10px;
     }
     
     .desc {
