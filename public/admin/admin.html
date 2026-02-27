@@ -1090,14 +1090,25 @@
 
                 // Procesar imagen principal
                 if (imgFile) {
-                    // Convertir archivo a Data URL (base64)
-                    imgUrl = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(imgFile);
-                    });
-                    console.log('✅ Imagen principal convertida a Data URL');
+                    // Subir a Cloudinary en lugar de guardar como base64
+                    const formData = new FormData();
+                    formData.append('file', imgFile);
+                    
+                    try {
+                        const response = await fetch(`${SERVER_URL}/api/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) throw new Error('Error al subir imagen principal');
+                        
+                        const { url } = await response.json();
+                        imgUrl = url;
+                        console.log('✅ Imagen principal subida a Cloudinary');
+                    } catch (uploadError) {
+                        console.error('Error al subir imagen:', uploadError);
+                        throw new Error('No se pudo subir la imagen principal a Cloudinary');
+                    }
                 } else if (id) {
                     // Si está editando y no cambió la imagen, mantener la existente
                     const { data: prop } = await supabaseClient
@@ -1110,10 +1121,10 @@
                     throw new Error('Imagen principal requerida');
                 }
 
-                // Procesar galería: filtrar solo URLs válidas (descartar objetos de carga)
+                // Procesar galería: SOLO filtrar URLs de Cloudinary (http/https), descartar Data URLs
                 galeriaUrls = estadoFormulario.galeria
                     .map(item => typeof item === 'string' ? item : item.url)
-                    .filter(url => url && (url.startsWith('http') || url.startsWith('data:')));
+                    .filter(url => url && url.startsWith('http'));
 
                 // Preparar datos para insertar/actualizar
                 const datosPropiedad = {
