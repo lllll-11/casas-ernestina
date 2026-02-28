@@ -764,10 +764,9 @@
             ? `http://localhost:5000`
             : window.location.origin;
 
-        // Configuración de Cloudinary (se completa desde variables de entorno)
-        // En producción en Netlify, estos valores se inyectan del archivo build
-        const CLOUDINARY_CLOUD_NAME = '%REACT_APP_CLOUDINARY_CLOUD_NAME%' || 'casas-ernestina';
-        const CLOUDINARY_UPLOAD_PRESET = '%REACT_APP_CLOUDINARY_UPLOAD_PRESET%' || 'casas_ernestina';
+        // Configuración de Cloudinary (valores reales)
+        const CLOUDINARY_CLOUD_NAME = 'dkrzgitcl';
+        const CLOUDINARY_UPLOAD_PRESET = 'casas_ernestina';
         
         console.log('☁️  Cloudinary configurado para:', CLOUDINARY_CLOUD_NAME);
         
