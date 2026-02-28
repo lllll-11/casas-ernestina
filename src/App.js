@@ -5,6 +5,8 @@ import TestimonialsSection from './components/TestimonialsSection';
 import Footer from './components/Footer';
 import { supabase } from './supabaseClient';
 
+// Force refresh - Designer update
+
 // Componente del Lightbox de Galería
 function Lightbox({ imagenes, indiceInicial, onClose }) {
     const [indiceActual, setIndiceActual] = React.useState(indiceInicial);
@@ -346,12 +348,22 @@ function App() {
                                 <div className="badge">★ {p.rating}</div>
                             </div>
                             <div className="card-info">
-                                <h3 className="card-title">{p.titulo}</h3>
-                                <div className="card-location">
-                                    <i className="fas fa-map-pin"></i>
-                                    <span>{p.ubicacion}</span>
+                                <div className="card-header">
+                                    <h3 className="card-title">{p.titulo}</h3>
+                                    <div className="card-location">
+                                        <i className="fas fa-map-pin"></i>
+                                        <span>{p.ubicacion}</span>
+                                    </div>
                                 </div>
-                                <div className="card-price-label">Precio por noche</div>
+                                <div className="card-footer">
+                                    <div>
+                                        <p className="card-price-label">Renta por noche</p>
+                                        
+                                    </div>
+                                    <button className="card-cta">
+                                        <i className="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
