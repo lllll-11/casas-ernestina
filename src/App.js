@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { supabase } from './supabaseClient';
+import TestimonialsSection from './components/TestimonialsSection';
 
 /* ================================================================
    CASAS MARIA ERNESTINA — Complete Rebuild from Scratch
@@ -212,6 +213,38 @@ function ModalDetalle({ propiedad, onClose }) {
 }
 
 
+// ─────────────── ANIMATED COUNTER ───────────────
+function AnimatedCounter({ targetValue }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const end = parseInt(targetValue, 10);
+    if (isNaN(end) || end === 0) return;
+    
+    const duration = 1200;
+    const startTime = performance.now();
+
+    const updateCount = (currentTime) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+      
+      // easeOutQuad
+      const ease = progress * (2 - progress);
+      
+      setCount(Math.floor(ease * end));
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCount);
+      }
+    };
+
+    requestAnimationFrame(updateCount);
+  }, [targetValue]);
+
+  return <>{count}</>;
+}
+
+
 // ─────────────── MAIN APP ───────────────
 function App() {
   const [filtro, setFiltro] = useState('Todos');
@@ -222,6 +255,47 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const headerRef = useRef(null);
+  const touchStartX = useRef(null);
+
+  // Form states for Reservation Request
+  const [selectedHouse, setSelectedHouse] = useState('');
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [guestsCount, setGuestsCount] = useState('2');
+  const [contactMessage, setContactMessage] = useState('');
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const housePart = selectedHouse ? `en la propiedad *${selectedHouse}*` : 'en una de sus propiedades';
+    const datesPart = (checkInDate && checkOutDate) ? ` del *${checkInDate}* al *${checkOutDate}*` : '';
+    const guestsPart = ` para *${guestsCount} huéspedes*`;
+    const messagePart = contactMessage ? `\n\n*Mensaje adicional:* ${contactMessage}` : '';
+
+    const text = `Hola, me interesa reservar ${housePart}${datesPart}${guestsPart}.${messagePart}`;
+    const url = `https://wa.me/529711924204?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.changedTouches[0].clientX;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null || propiedades.length === 0) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    const minSwipe = 50;
+    const limit = Math.min(propiedades.length, 5);
+
+    if (Math.abs(diff) > minSwipe) {
+      if (diff > 0) {
+        setHeroIdx(prev => (prev + 1) % limit);
+      } else {
+        setHeroIdx(prev => (prev - 1 + limit) % limit);
+      }
+    }
+    touchStartX.current = null;
+  };
 
   const categorias = ['Todos', 'Playa', 'Bosque', 'Ciudad'];
 
@@ -265,6 +339,41 @@ function App() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // ── Parallax scroll effect for Hero background ──
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const heroBg = document.querySelector('.hero-bg-slider');
+      if (heroBg && scrollY < window.innerHeight) {
+        heroBg.style.transform = `translateY(${scrollY * 0.35}px)`;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // ── Scroll reveal observer ──
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    const elements = document.querySelectorAll('.reveal');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [propiedades, loading, filtro]);
 
   // ── Lock body scroll when modal or menu is open ──
   useEffect(() => {
@@ -340,7 +449,7 @@ function App() {
       </nav>
 
       {/* ═══════════════════ HERO ═══════════════════ */}
-      <section className="hero">
+      <section className="hero" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         <div className="hero-bg-slider">
           {heroPropiedades.map((p, i) => (
             <div key={p.id} className={`hero-bg-slide ${i === heroIdx ? 'active' : ''}`}>
@@ -387,15 +496,15 @@ function App() {
       </section>
 
       {/* ═══════════════════ FILOSOFÍA ═══════════════════ */}
-      <section className="philosophy" id="filosofia">
+      <section className="philosophy reveal" id="filosofia">
         <div className="philosophy-grid">
-          <div className="philosophy-left">
+          <div className="philosophy-left reveal reveal-scale-in reveal-delay-1">
             <span className="section-eyebrow">Sobre Nosotros</span>
             <blockquote className="philosophy-quote">
               "Casas cómodas y bien equipadas para que disfrutes tus vacaciones sin preocupaciones."
             </blockquote>
           </div>
-          <div className="philosophy-right">
+          <div className="philosophy-right reveal reveal-scale-in reveal-delay-2">
             {propiedades.length > 0 ? (
               <img
                 src={propiedades[0]?.img}
@@ -406,7 +515,7 @@ function App() {
               <div className="philosophy-image" style={{ background: 'var(--cream)' }} />
             )}
             <div className="philosophy-accent-box">
-              <div className="accent-number">{propiedades.length}+</div>
+              <div className="accent-number"><AnimatedCounter targetValue={propiedades.length} />+</div>
               <div className="accent-label">Casas para Rentar</div>
             </div>
           </div>
@@ -416,7 +525,7 @@ function App() {
       {/* ═══════════════════ CATÁLOGO ═══════════════════ */}
       <section className="catalog" id="catalogo">
         <div className="catalog-inner">
-          <div className="section-intro">
+          <div className="section-intro reveal reveal-scale-in">
             <span className="section-eyebrow">Nuestras Casas</span>
             <h2 className="section-heading">Casas Disponibles</h2>
             <p className="section-desc">
@@ -437,9 +546,19 @@ function App() {
           </div>
 
           {loading ? (
-            <div className="catalog-loader">
-              <div className="loader-spinner" />
-              <p>Cargando colección...</p>
+            <div className="property-grid">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="skeleton-card">
+                  <div className="skeleton-image shimmer" />
+                  <div className="skeleton-body">
+                    <div className="skeleton-category shimmer" />
+                    <div className="skeleton-title shimmer" />
+                    <div className="skeleton-location shimmer" />
+                    <div className="skeleton-divider" />
+                    <div className="skeleton-specs shimmer" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="property-grid">
@@ -451,9 +570,9 @@ function App() {
                 filtradas.map((p, i) => (
                   <div
                     key={p.id}
-                    className="property-card"
+                    className="property-card reveal reveal-fade-up"
                     onClick={() => setPropiedadSeleccionada(p)}
-                    style={{ animationDelay: `${i * 0.08}s` }}
+                    style={{ transitionDelay: `${(i % 3) * 0.08}s` }}
                   >
                     <div className="property-card-image">
                       <img src={p.img} alt={p.titulo} loading="lazy" />
@@ -501,9 +620,9 @@ function App() {
       </section>
 
       {/* ═══════════════════ SERVICIOS ═══════════════════ */}
-      <section className="services" id="servicios">
+      <section className="services reveal" id="servicios">
         <div className="services-inner">
-          <div className="section-intro">
+          <div className="section-intro reveal reveal-scale-in">
             <span className="section-eyebrow">Servicios Premium</span>
             <h2 className="section-heading">Experiencias Exclusivas</h2>
             <p className="section-desc">
@@ -512,7 +631,7 @@ function App() {
           </div>
 
           <div className="services-grid">
-            <div className="service-card">
+            <div className="service-card reveal reveal-scale-in reveal-delay-1">
               <div className="service-icon">
                 <i className="fas fa-crown"></i>
               </div>
@@ -520,7 +639,7 @@ function App() {
               <p>Curaduría rigurosa de villas y lofts con arquitectura contemporánea y vistas paradisíacas.</p>
             </div>
 
-            <div className="service-card">
+            <div className="service-card reveal reveal-scale-in reveal-delay-2">
               <div className="service-icon">
                 <i className="fas fa-concierge-bell"></i>
               </div>
@@ -528,7 +647,7 @@ function App() {
               <p>Atención dedicada para organizar tours, reservas y solicitudes especiales durante tu estancia.</p>
             </div>
 
-            <div className="service-card">
+            <div className="service-card reveal reveal-scale-in reveal-delay-3">
               <div className="service-icon">
                 <i className="fas fa-utensils"></i>
               </div>
@@ -536,7 +655,7 @@ function App() {
               <p>Experiencias gastronómicas de autor en tu residencia, preparadas por chefs locales reconocidos.</p>
             </div>
 
-            <div className="service-card">
+            <div className="service-card reveal reveal-scale-in reveal-delay-4">
               <div className="service-icon">
                 <i className="fas fa-spa"></i>
               </div>
@@ -547,16 +666,19 @@ function App() {
         </div>
       </section>
 
+      {/* ═══════════════════ TESTIMONIOS ═══════════════════ */}
+      <TestimonialsSection />
+
       {/* ═══════════════════ CONTACTO ═══════════════════ */}
-      <section className="contact" id="contacto">
+      <section className="contact reveal" id="contacto">
         <div className="contact-inner">
           <div className="contact-grid">
-            <div className="contact-info">
+            <div className="contact-info reveal reveal-scale-in reveal-delay-1">
               <span className="section-eyebrow">Contacto</span>
               <h2 className="section-heading">¿Quieres reservar?</h2>
               <p className="section-desc">
-                Escríbenos directo por WhatsApp o llámanos. 
-                Te respondemos de inmediato.
+                Escríbenos directo por WhatsApp, llámanos o completa el formulario para consultar disponibilidad.
+                Te responderemos de inmediato.
               </p>
 
               <div className="contact-channels">
@@ -575,7 +697,76 @@ function App() {
               </div>
             </div>
 
+            <div className="contact-form-card reveal reveal-scale-in reveal-delay-2">
+              <h3>Solicitar Reserva</h3>
+              <p className="form-subtitle">Completa los detalles y te redirigiremos a WhatsApp</p>
+              
+              <form onSubmit={handleFormSubmit} className="contact-form">
+                <div className="form-group">
+                  <select 
+                    value={selectedHouse} 
+                    onChange={e => setSelectedHouse(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecciona una casa...</option>
+                    {propiedades.map(p => (
+                      <option key={p.id} value={p.titulo}>{p.titulo} ({p.ubicacion})</option>
+                    ))}
+                  </select>
+                </div>
 
+                <div className="form-row">
+                  <div className="form-group">
+                    <input 
+                      type="date" 
+                      placeholder="Check-in"
+                      value={checkInDate}
+                      onChange={e => setCheckInDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <input 
+                      type="date" 
+                      placeholder="Check-out"
+                      value={checkOutDate}
+                      onChange={e => setCheckOutDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <select 
+                    value={guestsCount} 
+                    onChange={e => setGuestsCount(e.target.value)}
+                    required
+                  >
+                    <option value="1">1 Huésped</option>
+                    <option value="2">2 Huéspedes</option>
+                    <option value="3">3 Huéspedes</option>
+                    <option value="4">4 Huéspedes</option>
+                    <option value="5">5 Huéspedes</option>
+                    <option value="6">6 Huéspedes</option>
+                    <option value="7">7 Huéspedes</option>
+                    <option value="8">8+ Huéspedes</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <textarea 
+                    placeholder="Mensaje adicional (ej. requisitos especiales, dudas...)"
+                    value={contactMessage}
+                    onChange={e => setContactMessage(e.target.value)}
+                    rows="3"
+                  />
+                </div>
+
+                <button type="submit" className="btn-submit">
+                  Consultar por WhatsApp <i className="fab fa-whatsapp"></i>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </section>
