@@ -132,7 +132,7 @@ function AdminPanel() {
             img: propiedad.img,
             galeria: propiedad.galeria || [],
             ubicacion: propiedad.ubicacion,
-            mapa_embed: propiedad.mapa_embed,
+            mapa_embed: propiedad.mapa_embed || '',
             descripcion: propiedad.descripcion,
             huespedes: propiedad.huespedes,
             dormitorios: propiedad.dormitorios,
@@ -217,18 +217,16 @@ function AdminPanel() {
                             </select>
                         </div>
 
-                        <div className="form-row">
-                            <input
-                                type="number"
-                                name="rating"
-                                placeholder="Rating"
-                                step="0.1"
-                                min="0"
-                                max="5"
-                                value={formData.rating}
-                                onChange={handleInputChange}
-                            />
-                        </div>
+                        <input
+                            type="number"
+                            name="rating"
+                            placeholder="Rating"
+                            step="0.1"
+                            min="0"
+                            max="5"
+                            value={formData.rating}
+                            onChange={handleInputChange}
+                        />
 
                         <input
                             type="url"
@@ -257,6 +255,14 @@ function AdminPanel() {
                                 required
                             />
                         </div>
+
+                        <textarea
+                            name="mapa_embed"
+                            placeholder="Código Google Maps Embed (iframe completo)"
+                            value={formData.mapa_embed}
+                            onChange={handleInputChange}
+                            rows="2"
+                        ></textarea>
 
                         <textarea
                             name="descripcion"

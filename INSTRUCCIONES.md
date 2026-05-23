@@ -52,7 +52,6 @@ Esto abrirá:
 2. Completa el formulario:
    - **Título**: Nombre de la propiedad
    - **Categoría**: Playa, Bosque o Ciudad
-   - **Precio**: Precio por noche (ej: 2,500)
    - **Rating**: Valoración (0-5)
    - **Imagen principal**: URL de la foto principal
    - **Galería**: URLs de fotos adicionales (una por línea)

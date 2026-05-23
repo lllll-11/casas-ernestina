@@ -510,13 +510,6 @@
             margin-bottom: 8px;
         }
 
-        .property-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 12px;
-        }
-
         .property-info {
             display: flex;
             gap: 12px;
@@ -648,11 +641,7 @@
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <div class="form-group">
-                            <label class="required">Precio</label>
-                            <input type="text" id="precio" placeholder="Ej: 2,500" required>
-                        </div>
+                    <div class="form-section full">
                         <div class="form-group">
                             <label class="required">Rating (0-5)</label>
                             <input type="number" id="rating" min="0" max="5" step="0.1" value="5.0">
@@ -872,7 +861,6 @@
                         <div class="property-content">
                             <h3>${prop.titulo}</h3>
                             <p class="property-location">📍 ${prop.ubicacion}</p>
-                            <p class="property-price">$${prop.precio}</p>
                             <div class="property-info">
                                 <span>👥 ${prop.huespedes}</span>
                                 <span>🛏️ ${prop.dormitorios}</span>
@@ -926,7 +914,6 @@
                 document.getElementById('formTitle').textContent = 'Editar Propiedad';
                 document.getElementById('titulo').value = prop.titulo;
                 document.getElementById('categoria').value = prop.categoria;
-                document.getElementById('precio').value = prop.precio;
                 document.getElementById('rating').value = prop.rating;
                 document.getElementById('ubicacion').value = prop.ubicacion;
                 document.getElementById('descripcion').value = prop.descripcion;
@@ -1145,7 +1132,6 @@
                 const datosPropiedad = {
                     titulo: document.getElementById('titulo').value,
                     categoria: document.getElementById('categoria').value,
-                    precio: document.getElementById('precio').value,
                     rating: parseFloat(document.getElementById('rating').value),
                     img: imgUrl,
                     galeria: galeriaUrls,

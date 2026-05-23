@@ -95,10 +95,10 @@ function HeroCarousel({ propiedades = [] }) {
 
                 <div className="hero-carousel-overlay">
                     <div className="hero-carousel-content">
-                        <h1 className="hero-title">Descubre Casas Exclusivas</h1>
-                        <p className="hero-subtitle">Experiencias únicas en lugares privilegiados</p>
-                        <button className="hero-cta" onClick={() => window.scrollTo({ top: 500, behavior: 'smooth' })}>
-                            Ver Propiedades
+                        <h1 className="hero-title">Estética <span className="gold-text">y</span> Exclusividad</h1>
+                        <p className="hero-subtitle">Casas de autor en los paraísos más hermosos de México</p>
+                        <button className="hero-cta" onClick={() => document.getElementById('propiedades').scrollIntoView({ behavior: 'smooth' })}>
+                            Explorar Propiedades
                         </button>
                     </div>
                 </div>

@@ -8,7 +8,7 @@ const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 5000) : 5000;
 
 // ==================== FUNCIONES HELPER ====================
 /**
@@ -182,7 +182,6 @@ app.get('/api/propiedades', async (req, res) => {
             id: row.id,
             titulo: row.titulo,
             categoria: row.categoria,
-            precio: row.precio,
             rating: row.rating,
             img: row.img,
             galeria: safeJSONParse(row.galeria, []),
@@ -213,7 +212,6 @@ app.get('/api/propiedades/:id', async (req, res) => {
             id: row.id,
             titulo: row.titulo,
             categoria: row.categoria,
-            precio: row.precio,
             rating: row.rating,
             img: row.img,
             galeria: safeJSONParse(row.galeria, []),
@@ -256,11 +254,11 @@ app.post('/api/propiedades', async (req, res) => {
 
         // ==================== VALIDACIONES ====================
         // Validación de campos requeridos
-        if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
+        if (!titulo || !categoria || !ubicacion || !img || !descripcion) {
             console.error('❌ Validación fallida: faltan campos requeridos');
             return res.status(400).json({
                 error: 'Faltan campos requeridos',
-                recibidos: { titulo: !!titulo, categoria: !!categoria, precio: !!precio, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion }
+                recibidos: { titulo: !!titulo, categoria: !!categoria, ubicacion: !!ubicacion, img: !!img, descripcion: !!descripcion }
             });
         }
 
@@ -275,10 +273,6 @@ app.post('/api/propiedades', async (req, res) => {
 
         if (typeof descripcion !== 'string' || descripcion.trim().length === 0 || descripcion.length > 5000) {
             return res.status(400).json({ error: 'Descripción debe tener 1-5000 caracteres' });
-        }
-
-        if (typeof precio !== 'string' || precio.trim().length === 0) {
-            return res.status(400).json({ error: 'Precio no puede estar vacío' });
         }
 
         if (typeof ubicacion !== 'string' || ubicacion.trim().length === 0) {
@@ -341,12 +335,12 @@ app.post('/api/propiedades', async (req, res) => {
 
         await db.execute(
             `INSERT INTO propiedades (
-                titulo, categoria, precio, rating, img, galeria,
+                titulo, categoria, rating, img, galeria,
                 ubicacion, mapa_embed, descripcion, huespedes,
                 dormitorios, banios, amenidades
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                titulo, categoria, precio, ratingNum, img,
+                titulo, categoria, ratingNum, img,
                 JSON.stringify(galeriaValidada),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedesNum, dormitoriosNum, baniosNum,
@@ -365,7 +359,7 @@ app.post('/api/propiedades', async (req, res) => {
 app.put('/api/propiedades/:id', async (req, res) => {
     try {
         const {
-            titulo, categoria, precio, rating, img, galeria,
+            titulo, categoria, rating, img, galeria,
             ubicacion, mapa_embed, descripcion, huespedes,
             dormitorios, banios, amenidades
         } = req.body;
@@ -373,7 +367,7 @@ app.put('/api/propiedades/:id', async (req, res) => {
         console.log('✏️  Actualizando propiedad ID:', req.params.id);
 
         // ==================== VALIDACIONES ====================
-        if (!titulo || !categoria || !precio || !ubicacion || !img || !descripcion) {
+        if (!titulo || !categoria || !ubicacion || !img || !descripcion) {
             return res.status(400).json({ error: 'Faltan campos requeridos' });
         }
 
@@ -442,13 +436,13 @@ app.put('/api/propiedades/:id', async (req, res) => {
 
         await db.execute(
             `UPDATE propiedades SET
-                titulo = ?, categoria = ?, precio = ?, rating = ?, img = ?,
+                titulo = ?, categoria = ?, rating = ?, img = ?,
                 galeria = ?, ubicacion = ?, mapa_embed = ?, descripcion = ?,
                 huespedes = ?, dormitorios = ?, banios = ?, amenidades = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?`,
             [
-                titulo, categoria, precio, ratingNum, img,
+                titulo, categoria, ratingNum, img,
                 JSON.stringify(galeriaValidada),
                 ubicacion, mapa_embed || '',
                 descripcion, huespedesNum, dormitoriosNum, baniosNum,
